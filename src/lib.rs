@@ -1,14 +1,22 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+//! # Halfling
+//! Basic utilities and structures for handling nibbles, optimizing for memory usage whenever
+//! possible.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// lints
+#[warn(missing_docs)]
+#[warn(clippy::missing_docs_in_private_items)]
+#[warn(clippy::todo)]
+#[warn(rustdoc::all)]
+#[warn(clippy::missing_errors_doc)]
+#[warn(clippy::missing_panics_doc)]
+#[warn(clippy::missing_safety_doc)]
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+/// Byte-width nibbles.
+pub mod nibble;
+
+/// Error types.
+pub mod error;
+
+// TODOs
+//mod packed_array;
+//mod packed_vec;
