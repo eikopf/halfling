@@ -54,6 +54,36 @@ impl std::ops::Add<Self> for Nibble {
     }
 }
 
+impl std::fmt::Binary for Nibble {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <u8 as std::fmt::Binary>::fmt(&u8::from(*self), f)
+    }
+}
+
+impl std::fmt::Octal for Nibble {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <u8 as std::fmt::Octal>::fmt(&u8::from(*self), f)
+    }
+}
+
+impl std::fmt::LowerHex for Nibble {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <u8 as std::fmt::LowerHex>::fmt(&u8::from(*self), f)
+    }
+}
+
+impl std::fmt::UpperHex for Nibble {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <u8 as std::fmt::UpperHex>::fmt(&u8::from(*self), f)
+    }
+}
+
+impl std::fmt::Display for Nibble {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#04b}", self)
+    }
+}
+
 impl From<Nibble> for u8 {
     fn from(value: Nibble) -> Self {
         unsafe { std::mem::transmute(value) }
@@ -105,6 +135,12 @@ impl Nibble {
     pub const unsafe fn new_unchecked(value: u8) -> Self {
         debug_assert!(value < 16);
         std::mem::transmute(value)
+    }
+
+    /// Consumes `self` and returns a `u8` representing its value, guaranteed
+    /// to be at most 15.
+    pub const fn get(self) -> u8 {
+        unsafe { std::mem::transmute(self) }
     }
 }
 
