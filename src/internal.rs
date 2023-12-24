@@ -8,7 +8,7 @@
 /// directly created via [`std::mem::transmute`];
 /// edge cases notwithstanding, the variants in this 
 /// enum should never actually be constructed.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum UnsignedNibbleValue {
     _Zero = 0x0,
@@ -38,7 +38,7 @@ pub enum UnsignedNibbleValue {
 /// full byte of memory to use [`std::mem::transmute`]
 /// as much as possible, rather than defining some
 /// arbitrary conversion schema from a [`Nibble`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(i8)]
 pub enum SignedNibbleValue {
     _NegativeEight = -8,

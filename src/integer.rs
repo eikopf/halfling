@@ -4,15 +4,27 @@ use crate::{
     nibble::Nibble,
 };
 
-/// An unsigned integer backed by a [`Nibble`].
-#[derive(Clone, Copy, PartialEq, Eq)]
+/// An unsigned integer backed by a nibble, representing a value from 0 to 15.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct U4(UnsignedNibbleValue);
 
-/// A signed integer backed by a [`Nibble`].
-#[derive(Clone, Copy, PartialEq, Eq)]
+/// A signed integer backed by a nibble, representing a value from -8 to 7.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct I4(SignedNibbleValue);
+
+impl From<U4> for u8 {
+    fn from(value: U4) -> Self {
+        value.get()
+    }
+}
+
+impl From<I4> for i8 {
+    fn from(value: I4) -> Self {
+        value.get()
+    }
+}
 
 impl TryFrom<u8> for U4 {
     type Error = InvalidNibbleError<u8>;
@@ -38,15 +50,185 @@ impl TryFrom<i8> for I4 {
     }
 }
 
-impl From<U4> for u8 {
-    fn from(value: U4) -> Self {
-        value.get()
+impl std::ops::Add for U4 {
+    type Output = U4;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let sum: u8 = self.get() + rhs.get();
+        match Self::try_from(sum) {
+            Ok(u4) => u4,
+            Err(_) => panic!(
+                "Tried to represent {} + {} ({}) with a halfling::integer::U4",
+                self.get(),
+                rhs.get(),
+                sum
+            ),
+        }
     }
 }
 
-impl From<I4> for i8 {
-    fn from(value: I4) -> Self {
-        value.get()
+impl std::ops::Add for I4 {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let sum: i8 = self.get() + rhs.get();
+        match Self::try_from(sum) {
+            Ok(i4) => i4,
+            Err(_) => panic!(
+                "Tried to represent {} + {} ({}) with a halfling::integer::I4",
+                self.get(),
+                rhs.get(),
+                sum
+            ),
+        }
+    }
+}
+
+impl std::ops::Div for U4 {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        let quot = self.get() / rhs.get();
+        match Self::try_from(quot) {
+            Ok(result) => result,
+            Err(_) => panic!(
+                "Tried to represent {} / {} ({}) with a halfling::integer::U4",
+                self.get(),
+                rhs.get(),
+                quot
+            ),
+        }
+    }
+}
+
+impl std::ops::Div for I4 {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        let quot = self.get() / rhs.get();
+        match Self::try_from(quot) {
+            Ok(result) => result,
+            Err(_) => panic!(
+                "Tried to represent {} / {} ({}) with a halfling::integer::I4",
+                self.get(),
+                rhs.get(),
+                quot
+            ),
+        }
+    }
+}
+
+impl std::ops::Mul for U4 {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let prod: u8 = self.get() * rhs.get();
+        match Self::try_from(prod) {
+            Ok(u4) => u4,
+            Err(_) => panic!(
+                "Tried to represent {} * {} ({}) with a halfling::integer::U4",
+                self.get(),
+                rhs.get(),
+                prod
+            ),
+        }
+    }
+}
+
+impl std::ops::Mul for I4 {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let prod: i8 = self.get() * rhs.get();
+        match Self::try_from(prod) {
+            Ok(i4) => i4,
+            Err(_) => panic!(
+                "Tried to represent {} * {} ({}) with a halfling::integer::I4",
+                self.get(),
+                rhs.get(),
+                prod
+            ),
+        }
+    }
+}
+
+impl std::ops::Sub for U4 {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let diff = self.get() - rhs.get();
+        match Self::try_from(diff) {
+            Ok(result) => result,
+            Err(_) => panic!(
+                "Tried to represent {} - {} ({}) with a halfling::integer::U4",
+                self.get(),
+                rhs.get(),
+                diff
+            ),
+        }
+    }
+}
+
+impl std::ops::Sub for I4 {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let diff = self.get() - rhs.get();
+        match Self::try_from(diff) {
+            Ok(result) => result,
+            Err(_) => panic!(
+                "Tried to represent {} - {} ({}) with a halfling::integer::I4",
+                self.get(),
+                rhs.get(),
+                diff
+            ),
+        }
+    }
+}
+
+impl num::One for U4 {
+    fn one() -> Self {
+        unsafe { Self::new_unchecked(1) }
+    }
+
+    fn is_one(&self) -> bool
+    where
+        Self: PartialEq,
+    {
+        self.0 == UnsignedNibbleValue::_One
+    }
+}
+
+impl num::One for I4 {
+    fn one() -> Self {
+        unsafe { Self::new_unchecked(1) }
+    }
+
+    fn is_one(&self) -> bool
+    where
+        Self: PartialEq,
+    {
+        self.0 == SignedNibbleValue::_One
+    }
+}
+
+impl num::Zero for U4 {
+    fn zero() -> Self {
+        Self::MIN
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0 == UnsignedNibbleValue::_Zero
+    }
+}
+
+impl num::Zero for I4 {
+    fn zero() -> Self {
+        unsafe { I4::new_unchecked(0) }
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0 == SignedNibbleValue::_Zero
     }
 }
 

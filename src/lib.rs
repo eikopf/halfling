@@ -1,5 +1,4 @@
-//! Basic utilities and structures for handling nibbles, optimizing for memory usage whenever
-//! possible.
+//! Basic utilities and structures for handling nibbles, both in raw data and integral forms.
 //!
 //! # Nibbles
 //! A [nibble](https://en.wikipedia.org/wiki/Nibble) (sometimes also *nybble* or *nybl*)
@@ -56,6 +55,7 @@ pub mod integer;
 pub mod nibble;
 
 // PRIVATE MODULES
+
 /// Enums and functions for implementing types with nibble behaviour.
 mod internal;
 
