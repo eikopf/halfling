@@ -73,7 +73,23 @@ impl std::fmt::UpperHex for Nibble {
 
 impl std::fmt::Display for Nibble {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#04b}", self)
+        // this needs to be 6 (rather than 4) because the width includes
+        // the prefix.
+        write!(f, "{:#06b}", self)
+    }
+}
+
+impl std::ops::Not for Nibble {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        let value: u8 = self.into();
+        let mask: u8 = 0b00001111;
+
+        // a bitwise not will flip the upper four bits
+        // to ones, so we mask them off.
+        let complement: u8 = !value & mask;
+        unsafe { std::mem::transmute(complement) }
     }
 }
 
@@ -190,6 +206,16 @@ mod tests {
             let nibble = unsafe { Nibble::new_unchecked(i) };
             let byte: u8 = nibble.into();
             assert_eq!(byte, i);
+        }
+    }
+
+    #[test]
+    fn bitwise_not_produces_valid_nibbles() {
+        for value in 0u8..15u8 {
+            let nibble = Nibble::try_from(value).unwrap();
+            let complement = !nibble;
+            eprintln!("{:#06b} --> {:#06b}", nibble, complement);
+            assert!(nibble.get() + complement.get() == 15u8);
         }
     }
 }

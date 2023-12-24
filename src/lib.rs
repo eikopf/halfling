@@ -15,6 +15,12 @@
 //! They are byte-width due to [Rust's fundamental expectation that all types are at least 
 //! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which prevents us 
 //! from constructing a single type that genuinely consumes only a nibble of memory.
+//!
+//! Very intentionally, [`Nibble`](nibble::Nibble) *does not* implement any of
+//! [`Add`](std::ops::Add), [`Sub`](std::ops::Sub), [`Mul`](std::ops::Mul), or similar
+//! operations: it is only a unit of data, and a downstream consumer of this crate should be
+//! able to decide for themselves how to interpret this data and therefore how (if at all) to
+//! define corresponding operations.
 
 // lints
 #[warn(missing_docs)]
