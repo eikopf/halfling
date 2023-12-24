@@ -79,6 +79,63 @@ impl std::fmt::Display for Nibble {
     }
 }
 
+impl std::ops::BitAnd for Nibble {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        let left: u8 = self.into();
+        let right: u8 = rhs.into();
+
+        // upper bits are all zero,
+        // so no need to mask them off
+        let result: u8 = left & right;
+        unsafe { Nibble::new_unchecked(result) }
+    }
+}
+
+impl std::ops::BitAndAssign for Nibble {
+    fn bitand_assign(&mut self, rhs: Self) {
+        *self = *self & rhs;
+    }
+}
+
+impl std::ops::BitOr for Nibble {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let left: u8 = self.into();
+        let right: u8 = rhs.into();
+
+        // the upper 4 bits are all zero,
+        // so no need to mask them off.
+        let result = left | right;
+        unsafe { Nibble::new_unchecked(result) }
+    }
+}
+
+impl std::ops::BitOrAssign for Nibble {
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = *self | rhs;
+    }
+}
+
+impl std::ops::BitXor for Nibble {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        let left: u8 = self.into();
+        let right: u8 = rhs.into();
+        let result = left ^ right;
+        unsafe { Nibble::new_unchecked(result) }
+    }
+}
+
+impl std::ops::BitXorAssign for Nibble {
+    fn bitxor_assign(&mut self, rhs: Self) {
+        *self = *self ^ rhs;
+    }
+}
+
 impl std::ops::Not for Nibble {
     type Output = Self;
 
@@ -88,8 +145,54 @@ impl std::ops::Not for Nibble {
 
         // a bitwise not will flip the upper four bits
         // to ones, so we mask them off.
-        let complement: u8 = !value & mask;
-        unsafe { std::mem::transmute(complement) }
+        let result: u8 = !value & mask;
+        unsafe { Nibble::new_unchecked(result) }
+    }
+}
+
+impl std::ops::Shl<u8> for Nibble {
+    type Output = Nibble;
+
+    fn shl(self, rhs: u8) -> Self::Output {
+        let lhs: u8 = self.into();
+        let result = lhs << rhs;
+
+        match Nibble::try_from(result) {
+            Ok(nibble) => nibble,
+            Err(_) => panic!(
+                "The value {:#x} created by {} << {} cannot be represented as a nibble.",
+                result, lhs, rhs
+            ),
+        }
+    }
+}
+
+impl std::ops::ShlAssign<u8> for Nibble {
+    fn shl_assign(&mut self, rhs: u8) {
+        *self = *self << rhs;
+    }
+}
+
+impl std::ops::Shr<u8> for Nibble {
+    type Output = Nibble;
+
+    fn shr(self, rhs: u8) -> Self::Output {
+        let lhs: u8 = self.into();
+        let result = lhs >> rhs;
+
+        match Nibble::try_from(result) {
+            Ok(nibble) => nibble,
+            Err(_) => panic!(
+                "The value {:#x} created by {} >> {} cannot be represented as a nibble.",
+                result, lhs, rhs
+            ),
+        }
+    }
+}
+
+impl std::ops::ShrAssign<u8> for Nibble {
+    fn shr_assign(&mut self, rhs: u8) {
+        *self = *self >> rhs;
     }
 }
 
@@ -217,5 +320,31 @@ mod tests {
             eprintln!("{:#06b} --> {:#06b}", nibble, complement);
             assert!(nibble.get() + complement.get() == 15u8);
         }
+    }
+
+    #[test]
+    fn shl_produces_correct_values() {
+        let one = Nibble::try_from(1u8).unwrap();
+        let two = one << 1;
+        let four = one << 2;
+        let eight = one << 3;
+
+        assert_eq!(one.get(), 0b0001);
+        assert_eq!(two.get(), 0b0010);
+        assert_eq!(four.get(), 0b0100);
+        assert_eq!(eight.get(), 0b1000);
+    }
+
+    #[test]
+    fn shr_produces_correct_values() {
+        let fifteen = Nibble::MAX;
+        let seven = fifteen >> 1;
+        let three = fifteen >> 2;
+        let one = fifteen >> 3;
+
+        assert_eq!(fifteen.get(), 0b1111);
+        assert_eq!(seven.get(), 0b0111);
+        assert_eq!(three.get(), 0b0011);
+        assert_eq!(one.get(), 0b0001);
     }
 }

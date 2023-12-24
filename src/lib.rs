@@ -24,9 +24,10 @@
 
 // lints
 #[warn(missing_docs)]
-#[warn(clippy::missing_docs_in_private_items)]
-#[warn(clippy::todo)]
 #[warn(rustdoc::all)]
+#[warn(clippy::missing_docs_in_private_items)]
+#[warn(clippy::style)]
+#[warn(clippy::todo)]
 #[warn(clippy::missing_errors_doc)]
 #[warn(clippy::missing_panics_doc)]
 #[warn(clippy::missing_safety_doc)]
