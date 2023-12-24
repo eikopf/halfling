@@ -1,39 +1,4 @@
 use crate::error::InvalidNibbleError;
-use num_enum::{IntoPrimitive, UnsafeFromPrimitive};
-
-/// The internal representation of a [`Nibble`],
-/// used to guarantee that the compiler can apply
-/// niche value optimizations.
-///
-/// To avoid excessive branching, this enum must
-/// be `repr(u8)` such that valid nibbles can be
-/// directly created via [`std::mem::transmute`];
-/// the actual details are mediated by the
-/// [`num_enum`] crate. Edge cases notwithstanding,
-/// the variants in this enum should never actually
-/// be constructed.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, UnsafeFromPrimitive, IntoPrimitive,
-)]
-#[repr(u8)]
-enum AllowedNibbleValue {
-    _Zero = 0x0,
-    _One = 0x1,
-    _Two = 0x2,
-    _Three = 0x3,
-    _Four = 0x4,
-    _Five = 0x5,
-    _Six = 0x6,
-    _Seven = 0x7,
-    _Eight = 0x8,
-    _Nine = 0x9,
-    _Ten = 0xa,
-    _Eleven = 0xb,
-    _Twelve = 0xc,
-    _Thirteen = 0xd,
-    _Fourteen = 0xe,
-    _Fifteen = 0xf,
-}
 
 /// A byte-width unsigned nibble, i.e. an
 /// integer from 0 (inclusive) up to 16 (exclusive).
@@ -43,9 +8,9 @@ enum AllowedNibbleValue {
 /// [null pointer optimization](std::option#representation)
 /// applies: [`Option<Nibble>`](std::option) will always have the same size
 /// and alignment as `Nibble`
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct Nibble(AllowedNibbleValue);
+pub struct Nibble(crate::internal::UnsignedNibbleValue);
 
 impl std::fmt::Binary for Nibble {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -203,26 +168,12 @@ impl From<Nibble> for u8 {
 }
 
 impl TryFrom<u8> for Nibble {
-    type Error = InvalidNibbleError;
+    type Error = InvalidNibbleError<u8>;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0..=15 => Ok(Nibble(unsafe {
-                AllowedNibbleValue::unchecked_transmute_from(value)
-            })),
-            _ => Err(InvalidNibbleError::UnrepresentableByte(value)),
-        }
-    }
-}
-
-impl TryFrom<usize> for Nibble {
-    type Error = InvalidNibbleError;
-
-    fn try_from(value: usize) -> Result<Self, Self::Error> {
-        if value > u8::MAX.into() {
-            Err(InvalidNibbleError::TooLarge(value))
-        } else {
-            Nibble::try_from(u8::try_from(value).unwrap())
+            0..=15 => Ok(unsafe { Nibble::new_unchecked(value) }),
+            _ => Err(InvalidNibbleError::Unrepresentable(value)),
         }
     }
 }
@@ -234,16 +185,13 @@ impl Nibble {
     /// the same as `std::mem::sizeof<Nibble>() * 8`; instead it reflects
     /// the smallest possible size that a nibble could be packed into.
     pub const BITS: u32 = 4u32;
-    /// The minimum value representable by a nibble, whose bit pattern is `0b0000`.
-    pub const MIN: Nibble = unsafe { Nibble::new_unchecked(0b0000) };
-    /// The maximum value representable by a nibble, whose bit pattern is `0b1111`.
-    pub const MAX: Nibble = unsafe { Nibble::new_unchecked(0b1111) };
 
     /// Constructs a new nibble representing the given value
     /// without checking invariants.
     ///
     /// # Safety
     /// `value` must be strictly less than 16.
+    #[inline]
     pub const unsafe fn new_unchecked(value: u8) -> Self {
         debug_assert!(value < 16);
         std::mem::transmute(value)
@@ -251,6 +199,7 @@ impl Nibble {
 
     /// Consumes `self` and returns a `u8` representing its value, guaranteed
     /// to be at most 15.
+    #[inline]
     pub const fn get(self) -> u8 {
         unsafe { std::mem::transmute(self) }
     }
@@ -270,14 +219,9 @@ mod tests {
 
     #[test]
     fn representable_nibble_values_transmute_correctly() {
-        for i in 0..=15 {
-            let nibble: u8 = i.try_into().unwrap();
-            unsafe {
-                assert_eq!(
-                    nibble,
-                    AllowedNibbleValue::unchecked_transmute_from(nibble).into()
-                );
-            }
+        for i in 0..=15u8 {
+            let nibble: Nibble = unsafe { Nibble::new_unchecked(i) };
+            assert_eq!(nibble.get(), i);
         }
     }
 
@@ -337,7 +281,7 @@ mod tests {
 
     #[test]
     fn shr_produces_correct_values() {
-        let fifteen = Nibble::MAX;
+        let fifteen = Nibble::try_from(15u8).unwrap();
         let seven = fifteen >> 1;
         let three = fifteen >> 2;
         let one = fifteen >> 3;

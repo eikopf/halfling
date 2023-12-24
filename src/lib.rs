@@ -24,8 +24,17 @@
 //! of the integral types [`U4`](integer::U4) or [`I4`](integer::I4), which are each backed
 //! by a [`Nibble`](nibble::Nibble) and behave (as much as possible) like the corresponding
 //! primitive integers.
+//!
+//! # Integers - [`I4`](integer::I4) and [`U4`](integer::U4)
+//! Most commonly, nibbles are interpreted as integral values; these are included here as the
+//! [`I4`](integer::I4) and [`U4`](integer::U4) types, which behave like the corresponding
+//! primitive integral types. They are backed by the byte-width nibbles defined in the 
+//! [`nibble`] module, and as such benefit from the niche value optimization.
+//!
+//! For ecosystem compatibility, these types implement the [`num::Signed`] and [`num::Unsigned`]
+//! traits respectively.
 
-// lints
+// LINTS
 #[warn(missing_docs)]
 #[warn(rustdoc::all)]
 #[warn(clippy::missing_docs_in_private_items)]
@@ -35,6 +44,7 @@
 #[warn(clippy::missing_panics_doc)]
 #[warn(clippy::missing_safety_doc)]
 
+// PUBLIC MODULES
 
 /// Error types.
 pub mod error;
@@ -44,6 +54,10 @@ pub mod integer;
 
 /// Byte-width nibbles.
 pub mod nibble;
+
+// PRIVATE MODULES
+/// Enums and functions for implementing types with nibble behaviour.
+mod internal;
 
 // TODOs
 //mod packed_array;
