@@ -44,9 +44,19 @@ enum AllowedNibbleValue {
 #[repr(transparent)]
 pub struct Nibble(AllowedNibbleValue);
 
+impl std::ops::Add<Self> for Nibble {
+    type Output = u8;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let left: u8 = unsafe { std::mem::transmute(self) };
+        let right: u8 = unsafe { std::mem::transmute(rhs) };
+        left + right
+    }
+}
+
 impl From<Nibble> for u8 {
     fn from(value: Nibble) -> Self {
-        value.0.into()
+        unsafe { std::mem::transmute(value) }
     }
 }
 
@@ -76,6 +86,17 @@ impl TryFrom<usize> for Nibble {
 }
 
 impl Nibble {
+    /// The minimum number of bits required to represent a nibble.
+    ///
+    /// As opposed to the primitive integer types, this value is not
+    /// the same as `std::mem::sizeof<Nibble>() * 8`; instead it reflects
+    /// the smallest possible size that a nibble could be packed into.
+    pub const BITS: u32 = 4u32;
+    /// The minimum value representable by a nibble.
+    pub const MIN: Nibble = unsafe { Nibble::new_unchecked(0b0000) };
+    /// The maximum value representable by a nibble.
+    pub const MAX: Nibble = unsafe { Nibble::new_unchecked(0b1111) };
+
     /// Constructs a new nibble representing the given value
     /// without checking invariants.
     ///
@@ -100,7 +121,7 @@ mod tests {
     }
 
     #[test]
-    fn representable_nibbles_transmute_correctly() {
+    fn representable_nibble_values_transmute_correctly() {
         for i in 0..=15 {
             let nibble: u8 = i.try_into().unwrap();
             unsafe {
@@ -122,6 +143,24 @@ mod tests {
         // unacceptable nibble values
         for value in 16..=u8::MAX {
             assert!(Nibble::try_from(value).is_err());
+        }
+    }
+
+    #[test]
+    fn nibble_into_u8_is_correct() {
+        for i in 0..=15 {
+            let nibble = Nibble::try_from(i as u8).unwrap();
+            let byte: u8 = nibble.into();
+            assert_eq!(byte, i);
+        }
+    }
+
+    #[test]
+    fn unsafe_nibble_new_unchecked_is_valid_given_invariants() {
+        for i in 0..=15 {
+            let nibble = unsafe { Nibble::new_unchecked(i) };
+            let byte: u8 = nibble.into();
+            assert_eq!(byte, i);
         }
     }
 }
