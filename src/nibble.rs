@@ -9,7 +9,9 @@ use num_enum::{IntoPrimitive, UnsafeFromPrimitive};
 /// be `repr(u8)` such that valid nibbles can be
 /// directly created via [`std::mem::transmute`];
 /// the actual details are mediated by the
-/// [`num_enum`] crate.
+/// [`num_enum`] crate. Edge cases notwithstanding,
+/// the variants in this enum should never actually
+/// be constructed.
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, UnsafeFromPrimitive, IntoPrimitive,
 )]
@@ -39,7 +41,8 @@ enum AllowedNibbleValue {
 /// While this type does not explicitly guarantee any
 /// particular memory layout, it does guarantee that the
 /// [null pointer optimization](std::option#representation)
-/// applies.
+/// applies: [`Option<Nibble>`](std::option) will always have the same size
+/// and alignment as `Nibble`
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct Nibble(AllowedNibbleValue);
@@ -122,9 +125,9 @@ impl Nibble {
     /// the same as `std::mem::sizeof<Nibble>() * 8`; instead it reflects
     /// the smallest possible size that a nibble could be packed into.
     pub const BITS: u32 = 4u32;
-    /// The minimum value representable by a nibble.
+    /// The minimum value representable by a nibble, whose bit pattern is `0b0000`.
     pub const MIN: Nibble = unsafe { Nibble::new_unchecked(0b0000) };
-    /// The maximum value representable by a nibble.
+    /// The maximum value representable by a nibble, whose bit pattern is `0b1111`.
     pub const MAX: Nibble = unsafe { Nibble::new_unchecked(0b1111) };
 
     /// Constructs a new nibble representing the given value

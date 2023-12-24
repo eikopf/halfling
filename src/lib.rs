@@ -2,9 +2,19 @@
 //! possible.
 //!
 //! # Nibbles
-//! A nibble (sometimes also *nybble*, *nybbl*, or *nybl*) is a 4-bit unit of data, equivalent
-//! to a single-digit hexadecimal number, though individual [`Nibble`](nibble::Nibble)s will 
-//! still be byte-aligned due to Rust's underlying memory guarantees.
+//! A [nibble](https://en.wikipedia.org/wiki/Nibble) (sometimes also *nybble* or *nybl*)
+//! is a 4-bit unit of data, equivalent in size to a single-digit hexadecimal number.
+//! Historically, nibbles were used in early computers to represent small enumerations, as in
+//! the individual digits of a base-10 number, but today they are largely API details (as
+//! opposed to genuinely necessary memory-saving constructs).
+//!
+//! `halfling`'s [`Nibble`](nibble::Nibble) is a byte-width struct containing a single nibble,
+//! which enables the 
+//! [niche value optimization](https://www.noahlev.org/papers/popl22src-filling-a-niche.pdf) 
+//! (a [`Nibble`](nibble::Nibble) has 4 unused bits, and hence 240 such niches are available).
+//! They are byte-width due to [Rust's fundamental expectation that all types are at least 
+//! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which prevents us 
+//! from constructing a single type that genuinely consumes only a nibble of memory.
 
 // lints
 #[warn(missing_docs)]
