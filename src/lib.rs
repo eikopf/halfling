@@ -4,7 +4,7 @@
 //! # Nibbles
 //! A [nibble](https://en.wikipedia.org/wiki/Nibble) (sometimes also *nybble* or *nybl*)
 //! is a 4-bit unit of data, equivalent in size to a single-digit hexadecimal number.
-//! Historically, nibbles were used in early computers to represent small enumerations, as in
+//! Historically, nibbles were used in early computers to represent small enumerations, e.g.
 //! the individual digits of a base-10 number, but today they are largely API details (as
 //! opposed to genuinely necessary memory-saving constructs).
 //!
@@ -20,7 +20,10 @@
 //! [`Add`](std::ops::Add), [`Sub`](std::ops::Sub), [`Mul`](std::ops::Mul), or similar
 //! operations: it is only a unit of data, and a downstream consumer of this crate should be
 //! able to decide for themselves how to interpret this data and therefore how (if at all) to
-//! define corresponding operations.
+//! define corresponding operations. If you want to use these operations, consider using one
+//! of the integral types [`U4`](integer::U4) or [`I4`](integer::I4), which are each backed
+//! by a [`Nibble`](nibble::Nibble) and behave (as much as possible) like the corresponding
+//! primitive integers.
 
 // lints
 #[warn(missing_docs)]
@@ -32,11 +35,15 @@
 #[warn(clippy::missing_panics_doc)]
 #[warn(clippy::missing_safety_doc)]
 
-/// Byte-width nibbles.
-pub mod nibble;
 
 /// Error types.
 pub mod error;
+
+/// Integer types backed by nibbles.
+pub mod integer;
+
+/// Byte-width nibbles.
+pub mod nibble;
 
 // TODOs
 //mod packed_array;
