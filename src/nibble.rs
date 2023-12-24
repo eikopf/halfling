@@ -47,16 +47,6 @@ enum AllowedNibbleValue {
 #[repr(transparent)]
 pub struct Nibble(AllowedNibbleValue);
 
-impl std::ops::Add<Self> for Nibble {
-    type Output = u8;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let left: u8 = unsafe { std::mem::transmute(self) };
-        let right: u8 = unsafe { std::mem::transmute(rhs) };
-        left + right
-    }
-}
-
 impl std::fmt::Binary for Nibble {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         <u8 as std::fmt::Binary>::fmt(&u8::from(*self), f)
