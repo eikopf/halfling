@@ -30,7 +30,7 @@
 //! [`nibble`] module, and as such benefit from the niche value optimization.
 //!
 //! For ecosystem compatibility, these types implement the [`num::Signed`] and [`num::Unsigned`]
-//! traits respectively.
+//! traits respectively, among other [`num`] traits.
 
 // LINTS
 #[warn(missing_docs)]
