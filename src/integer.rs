@@ -84,6 +84,18 @@ impl std::ops::Add for I4 {
     }
 }
 
+impl std::ops::AddAssign for U4 {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl std::ops::AddAssign for I4 {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
 impl std::ops::Div for U4 {
     type Output = Self;
 
@@ -118,6 +130,18 @@ impl std::ops::Div for I4 {
     }
 }
 
+impl std::ops::DivAssign for U4 {
+    fn div_assign(&mut self, rhs: Self) {
+        *self = *self / rhs;
+    }
+}
+
+impl std::ops::DivAssign for I4 {
+    fn div_assign(&mut self, rhs: Self) {
+        *self = *self / rhs;
+    }
+}
+
 impl std::ops::Mul for U4 {
     type Output = Self;
 
@@ -149,6 +173,18 @@ impl std::ops::Mul for I4 {
                 prod
             ),
         }
+    }
+}
+
+impl std::ops::MulAssign for U4 {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
+    }
+}
+
+impl std::ops::MulAssign for I4 {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
     }
 }
 
@@ -198,6 +234,18 @@ impl std::ops::Rem for I4 {
     }
 }
 
+impl std::ops::RemAssign for U4 {
+    fn rem_assign(&mut self, rhs: Self) {
+        *self = *self % rhs;
+    }
+}
+
+impl std::ops::RemAssign for I4 {
+    fn rem_assign(&mut self, rhs: Self) {
+        *self = *self % rhs;
+    }
+}
+
 impl std::ops::Sub for U4 {
     type Output = Self;
 
@@ -229,6 +277,18 @@ impl std::ops::Sub for I4 {
                 diff
             ),
         }
+    }
+}
+
+impl std::ops::SubAssign for U4 {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
+    }
+}
+
+impl std::ops::SubAssign for I4 {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
     }
 }
 
