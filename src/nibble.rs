@@ -1,4 +1,4 @@
-use crate::{error::InvalidNibbleError, internal::UnsignedNibbleValue};
+use crate::{error::InvalidNibbleError, internal::{UnsignedNibbleValue, SignedNibbleValue}};
 
 /// A byte-width nibble, representing a 4-bit unit of data.
 ///
@@ -9,7 +9,7 @@ use crate::{error::InvalidNibbleError, internal::UnsignedNibbleValue};
 /// and alignment as `Nibble`
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct Nibble(pub(crate) UnsignedNibbleValue);
+pub struct Nibble(UnsignedNibbleValue);
 
 impl std::fmt::Binary for Nibble {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -160,6 +160,18 @@ impl std::ops::ShrAssign<u8> for Nibble {
     }
 }
 
+impl From<UnsignedNibbleValue> for Nibble {
+    fn from(value: UnsignedNibbleValue) -> Self {
+        Self(value)
+    }
+}
+
+impl From<Nibble> for UnsignedNibbleValue {
+    fn from(value: Nibble) -> Self {
+        value.0
+    }
+}
+
 impl From<Nibble> for u8 {
     fn from(value: Nibble) -> Self {
         unsafe { std::mem::transmute(value) }
@@ -201,6 +213,18 @@ impl Nibble {
     #[inline]
     pub const fn get(self) -> u8 {
         unsafe { std::mem::transmute(self) }
+    }
+
+    /// Consumes `self` and returns the underlying [`UnsignedNibbleValue`].
+    #[inline]
+    pub(crate) const fn unsigned_value(self) -> UnsignedNibbleValue {
+        self.0
+    }
+
+    /// Consumes `self` and returns the corresponding [`SignedNibbleValue`].
+    #[inline]
+    pub(crate) const fn signed_value(self) -> SignedNibbleValue {
+        self.0.signed_value()
     }
 }
 

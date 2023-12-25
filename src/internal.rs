@@ -2,18 +2,18 @@
 //!
 //! # Bit Patterns
 //! An [`UnsignedNibbleValue`] is defined such that its upper four bits
-//! are always zero, and as such no particular effort needs to be taken
+//! are always zero, and so no particular effort needs to be taken
 //! when showing its bit pattern to the user (i.e. in the [`std::fmt::Binary`]
 //! implementation on [`Nibble`](crate::nibble::Nibble).
 //!
-//! In comparison, the [`SignedNibbleValue`] is just an enumeration of
+//! By comparison, the [`SignedNibbleValue`] is just an enumeration of
 //! all the values that a 4-bit two's complement signed integer *would* be
 //! allowed to take; these values are stored as `i8`s, and as such both the
 //! most and least significant bits have the potential to be set.
 //!
 //! # Conversions
-//! Conversions between these two enums are handled by their `to_signed_value`
-//! and `to_unsigned_value` functions respectively, which aren't given as [`From`]
+//! Conversions between these two enums are handled by their `signed_value`
+//! and `unsigned_value` functions respectively, which aren't given as [`From`]
 //! impls because they're `const`.
 //!
 //! Mapping an unsigned value to a signed one is simple, since it just corresponds
@@ -90,7 +90,7 @@ impl UnsignedNibbleValue {
     /// Consumes self and returns the corresponding [`SignedNibbleValue`]
     /// that it represents according to a 4-bit two's complement representation.
     #[inline]
-    pub const fn to_signed_value(self) -> SignedNibbleValue {
+    pub const fn signed_value(self) -> SignedNibbleValue {
         // extract byte and significand
         let mut byte = self as u8;
         let significand = byte >> 3;
@@ -105,7 +105,7 @@ impl SignedNibbleValue {
     /// to the underlying bit pattern of `self` according to a 4-bit two's complement
     /// representation.
     #[inline]
-    pub const fn to_unsigned_value(self) -> UnsignedNibbleValue {
+    pub const fn unsigned_value(self) -> UnsignedNibbleValue {
         // extract byte value and mask off upper bits
         unsafe { std::mem::transmute((self as i8) & 0x0F) }
     }
@@ -128,82 +128,82 @@ mod tests {
     #[test]
     fn signed_nibble_value_to_unsigned_value_is_correct() {
         assert_eq!(
-            SignedNibbleValue::_NegativeEight.to_unsigned_value(),
+            SignedNibbleValue::_NegativeEight.unsigned_value(),
             UnsignedNibbleValue::_Eight
         );
 
         assert_eq!(
-            SignedNibbleValue::_NegativeSeven.to_unsigned_value(),
+            SignedNibbleValue::_NegativeSeven.unsigned_value(),
             UnsignedNibbleValue::_Nine
         );
 
         assert_eq!(
-            SignedNibbleValue::_NegativeSix.to_unsigned_value(),
+            SignedNibbleValue::_NegativeSix.unsigned_value(),
             UnsignedNibbleValue::_Ten
         );
 
         assert_eq!(
-            SignedNibbleValue::_NegativeFive.to_unsigned_value(),
+            SignedNibbleValue::_NegativeFive.unsigned_value(),
             UnsignedNibbleValue::_Eleven
         );
 
         assert_eq!(
-            SignedNibbleValue::_NegativeFour.to_unsigned_value(),
+            SignedNibbleValue::_NegativeFour.unsigned_value(),
             UnsignedNibbleValue::_Twelve
         );
 
         assert_eq!(
-            SignedNibbleValue::_NegativeThree.to_unsigned_value(),
+            SignedNibbleValue::_NegativeThree.unsigned_value(),
             UnsignedNibbleValue::_Thirteen
         );
 
         assert_eq!(
-            SignedNibbleValue::_NegativeTwo.to_unsigned_value(),
+            SignedNibbleValue::_NegativeTwo.unsigned_value(),
             UnsignedNibbleValue::_Fourteen
         );
 
         assert_eq!(
-            SignedNibbleValue::_NegativeOne.to_unsigned_value(),
+            SignedNibbleValue::_NegativeOne.unsigned_value(),
             UnsignedNibbleValue::_Fifteen
         );
 
         assert_eq!(
-            SignedNibbleValue::_Zero.to_unsigned_value(),
+            SignedNibbleValue::_Zero.unsigned_value(),
             UnsignedNibbleValue::_Zero
         );
 
         assert_eq!(
-            SignedNibbleValue::_One.to_unsigned_value(),
+            SignedNibbleValue::_One.unsigned_value(),
             UnsignedNibbleValue::_One
         );
 
         assert_eq!(
-            SignedNibbleValue::_Two.to_unsigned_value(),
+            SignedNibbleValue::_Two.unsigned_value(),
             UnsignedNibbleValue::_Two
         );
 
         assert_eq!(
-            SignedNibbleValue::_Three.to_unsigned_value(),
+            SignedNibbleValue::_Three.unsigned_value(),
             UnsignedNibbleValue::_Three
         );
 
         assert_eq!(
-            SignedNibbleValue::_Four.to_unsigned_value(),
+            SignedNibbleValue::_Four.unsigned_value(),
             UnsignedNibbleValue::_Four
         );
 
         assert_eq!(
-            SignedNibbleValue::_Five.to_unsigned_value(),
+            SignedNibbleValue::_Five.unsigned_value(),
             UnsignedNibbleValue::_Five
         );
 
         assert_eq!(
-            SignedNibbleValue::_Six.to_unsigned_value(),
+            SignedNibbleValue::_Six.unsigned_value(),
             UnsignedNibbleValue::_Six
         );
 
         assert_eq!(
-            SignedNibbleValue::_Seven.to_unsigned_value(),
+            SignedNibbleValue::_Seven.unsigned_value(),
             UnsignedNibbleValue::_Seven
         );
     }
@@ -211,82 +211,82 @@ mod tests {
     #[test]
     fn unsigned_nibble_value_to_signed_value_is_correct() {
         assert_eq!(
-            UnsignedNibbleValue::_Zero.to_signed_value(),
+            UnsignedNibbleValue::_Zero.signed_value(),
             SignedNibbleValue::_Zero
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_One.to_signed_value(),
+            UnsignedNibbleValue::_One.signed_value(),
             SignedNibbleValue::_One
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Two.to_signed_value(),
+            UnsignedNibbleValue::_Two.signed_value(),
             SignedNibbleValue::_Two
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Three.to_signed_value(),
+            UnsignedNibbleValue::_Three.signed_value(),
             SignedNibbleValue::_Three
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Four.to_signed_value(),
+            UnsignedNibbleValue::_Four.signed_value(),
             SignedNibbleValue::_Four
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Five.to_signed_value(),
+            UnsignedNibbleValue::_Five.signed_value(),
             SignedNibbleValue::_Five
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Six.to_signed_value(),
+            UnsignedNibbleValue::_Six.signed_value(),
             SignedNibbleValue::_Six
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Seven.to_signed_value(),
+            UnsignedNibbleValue::_Seven.signed_value(),
             SignedNibbleValue::_Seven
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Eight.to_signed_value(),
+            UnsignedNibbleValue::_Eight.signed_value(),
             SignedNibbleValue::_NegativeEight
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Nine.to_signed_value(),
+            UnsignedNibbleValue::_Nine.signed_value(),
             SignedNibbleValue::_NegativeSeven
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Ten.to_signed_value(),
+            UnsignedNibbleValue::_Ten.signed_value(),
             SignedNibbleValue::_NegativeSix
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Eleven.to_signed_value(),
+            UnsignedNibbleValue::_Eleven.signed_value(),
             SignedNibbleValue::_NegativeFive
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Twelve.to_signed_value(),
+            UnsignedNibbleValue::_Twelve.signed_value(),
             SignedNibbleValue::_NegativeFour
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Thirteen.to_signed_value(),
+            UnsignedNibbleValue::_Thirteen.signed_value(),
             SignedNibbleValue::_NegativeThree
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Fourteen.to_signed_value(),
+            UnsignedNibbleValue::_Fourteen.signed_value(),
             SignedNibbleValue::_NegativeTwo
         );
 
         assert_eq!(
-            UnsignedNibbleValue::_Fifteen.to_signed_value(),
+            UnsignedNibbleValue::_Fifteen.signed_value(),
             SignedNibbleValue::_NegativeOne
         );
     }

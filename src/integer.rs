@@ -7,34 +7,34 @@ use crate::{
 /// An unsigned integer backed by a nibble, representing a value from 0 to 15.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
-pub struct U4(pub(crate) UnsignedNibbleValue);
+pub struct U4(UnsignedNibbleValue);
 
 /// A signed integer backed by a nibble, representing a value from -8 to 7.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
-pub struct I4(pub(crate) SignedNibbleValue);
+pub struct I4(SignedNibbleValue);
 
 impl From<Nibble> for U4 {
     fn from(value: Nibble) -> Self {
-        Self(value.0)
+        Self(value.unsigned_value())
     }
 }
 
 impl From<Nibble> for I4 {
     fn from(value: Nibble) -> Self {
-        Self(value.0.to_signed_value())
+        Self(value.unsigned_value().signed_value())
     }
 }
 
 impl From<U4> for Nibble {
     fn from(value: U4) -> Self {
-        Nibble(value.0)
+        value.0.into()
     }
 }
 
 impl From<I4> for Nibble {
     fn from(value: I4) -> Self {
-        Nibble(value.0.to_unsigned_value())
+        value.0.unsigned_value().into()
     }
 }
 
@@ -76,7 +76,69 @@ impl TryFrom<i8> for I4 {
 
 impl std::fmt::Binary for U4 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        <u8 as std::fmt::Binary>::fmt(&self.get(), f)
+        let nibble: Nibble = (*self).into();
+        <Nibble as std::fmt::Binary>::fmt(&nibble, f)
+    }
+}
+
+impl std::fmt::Binary for I4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nibble: Nibble = (*self).into();
+        <Nibble as std::fmt::Binary>::fmt(&nibble, f)
+    }
+}
+
+impl std::fmt::Octal for U4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nibble: Nibble = (*self).into();
+        <Nibble as std::fmt::Octal>::fmt(&nibble, f)
+    }
+}
+
+impl std::fmt::Octal for I4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nibble: Nibble = (*self).into();
+        <Nibble as std::fmt::Octal>::fmt(&nibble, f)
+    }
+}
+
+impl std::fmt::LowerHex for U4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nibble: Nibble = (*self).into();
+        <Nibble as std::fmt::LowerHex>::fmt(&nibble, f)
+    }
+}
+
+impl std::fmt::LowerHex for I4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nibble: Nibble = (*self).into();
+        <Nibble as std::fmt::LowerHex>::fmt(&nibble, f)
+    }
+}
+
+impl std::fmt::UpperHex for U4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nibble: Nibble = (*self).into();
+        <Nibble as std::fmt::UpperHex>::fmt(&nibble, f)
+    }
+}
+
+impl std::fmt::UpperHex for I4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nibble: Nibble = (*self).into();
+        <Nibble as std::fmt::UpperHex>::fmt(&nibble, f)
+    }
+}
+
+impl std::fmt::Display for U4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <u8 as std::fmt::Display>::fmt(&self.get(), f)
+    }
+}
+
+impl std::fmt::Display for I4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <i8 as std::fmt::Display>::fmt(&self.get(), f)
     }
 }
 
