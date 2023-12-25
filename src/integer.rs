@@ -1,5 +1,5 @@
 use crate::{
-    error::InvalidNibbleError,
+    error::{InvalidNibbleError, NibbleParseError},
     internal::{SignedNibbleValue, UnsignedNibbleValue},
     nibble::Nibble,
 };
@@ -42,7 +42,7 @@ impl TryFrom<i8> for I4 {
     type Error = InvalidNibbleError<i8>;
 
     fn try_from(value: i8) -> Result<Self, Self::Error> {
-        if value >= -8 && value <= 7 {
+        if (-8..=7).contains(&value) {
             Ok(unsafe { I4::new_unchecked(value) })
         } else {
             Err(InvalidNibbleError::Unrepresentable(value))
@@ -152,6 +152,52 @@ impl std::ops::Mul for I4 {
     }
 }
 
+impl std::ops::Neg for I4 {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        let value = -(self.get());
+        match Self::try_from(value) {
+            Ok(i4) => i4,
+            Err(_) => panic!("Tried to represent {} in a halfling::integer::I4", value),
+        }
+    }
+}
+
+impl std::ops::Rem for U4 {
+    type Output = Self;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        let residue = self.get() % rhs.get();
+        match Self::try_from(residue) {
+            Ok(result) => result,
+            Err(_) => panic!(
+                "Tried to represent {} % {} ({}) with a halfling::integer::U4",
+                self.get(),
+                rhs.get(),
+                residue
+            ),
+        }
+    }
+}
+
+impl std::ops::Rem for I4 {
+    type Output = Self;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        let residue = self.get() % rhs.get();
+        match Self::try_from(residue) {
+            Ok(result) => result,
+            Err(_) => panic!(
+                "Tried to represent {} % {} ({}) with a halfling::integer::I4",
+                self.get(),
+                rhs.get(),
+                residue
+            ),
+        }
+    }
+}
+
 impl std::ops::Sub for U4 {
     type Output = Self;
 
@@ -183,6 +229,86 @@ impl std::ops::Sub for I4 {
                 diff
             ),
         }
+    }
+}
+
+impl num::Unsigned for U4 {}
+
+impl num::Signed for I4 {
+    fn abs(&self) -> Self {
+        // this behaviour matches the release behaviour of
+        // the abs function on primitive signed integers, and
+        // the expected behavior for num::Unsigned types
+        self.get().abs().try_into().unwrap_or(I4::MIN)
+    }
+
+    fn abs_sub(&self, other: &Self) -> Self {
+        let value = i8::abs_sub(&self.get(), &other.get());
+        match Self::try_from(value) {
+            Ok(i4) => i4,
+            Err(_) => {
+                panic!(
+                    "Tried to represent i8::abs_sub(&{}, &{}) ({}) with a halfling::integer::I4",
+                    self.get(),
+                    other.get(),
+                    value
+                )
+            }
+        }
+    }
+
+    fn signum(&self) -> Self {
+        self.get().signum().try_into().expect("0, 1, and -1 are valid nibbles")
+    }
+
+    fn is_positive(&self) -> bool {
+        self.get().is_positive()
+    }
+
+    fn is_negative(&self) -> bool {
+        self.get().is_negative()
+    }
+}
+
+impl num::Bounded for U4 {
+    fn min_value() -> Self {
+        Self::MIN
+    }
+
+    fn max_value() -> Self {
+        Self::MAX
+    }
+}
+
+impl num::Bounded for I4 {
+    fn min_value() -> Self {
+        Self::MIN
+    }
+
+    fn max_value() -> Self {
+        Self::MAX
+    }
+}
+
+impl num::Num for U4 {
+    type FromStrRadixErr = NibbleParseError<u8>;
+
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
+        u8::from_str_radix(str, radix)
+            .map_err(NibbleParseError::ParseError)
+            .map(Self::try_from)?
+            .map_err(NibbleParseError::ValueError)
+    }
+}
+
+impl num::Num for I4 {
+    type FromStrRadixErr = NibbleParseError<i8>;
+
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
+        i8::from_str_radix(str, radix)
+            .map_err(NibbleParseError::ParseError)
+            .map(Self::try_from)?
+            .map_err(NibbleParseError::ValueError)
     }
 }
 
