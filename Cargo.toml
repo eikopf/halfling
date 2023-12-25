@@ -13,5 +13,5 @@ description = "A collection of basic utilities for working with nibbles."
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-num = "0.4.1"
+num-traits = "0.2.17"
 thiserror = "1.0.51"

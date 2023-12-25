@@ -292,9 +292,9 @@ impl std::ops::SubAssign for I4 {
     }
 }
 
-impl num::Unsigned for U4 {}
+impl num_traits::Unsigned for U4 {}
 
-impl num::Signed for I4 {
+impl num_traits::Signed for I4 {
     fn abs(&self) -> Self {
         // this behaviour matches the release behaviour of
         // the abs function on primitive signed integers, and
@@ -330,7 +330,7 @@ impl num::Signed for I4 {
     }
 }
 
-impl num::Bounded for U4 {
+impl num_traits::Bounded for U4 {
     fn min_value() -> Self {
         Self::MIN
     }
@@ -340,7 +340,7 @@ impl num::Bounded for U4 {
     }
 }
 
-impl num::Bounded for I4 {
+impl num_traits::Bounded for I4 {
     fn min_value() -> Self {
         Self::MIN
     }
@@ -350,7 +350,7 @@ impl num::Bounded for I4 {
     }
 }
 
-impl num::Num for U4 {
+impl num_traits::Num for U4 {
     type FromStrRadixErr = NibbleParseError<u8>;
 
     fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
@@ -361,7 +361,7 @@ impl num::Num for U4 {
     }
 }
 
-impl num::Num for I4 {
+impl num_traits::Num for I4 {
     type FromStrRadixErr = NibbleParseError<i8>;
 
     fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
@@ -372,7 +372,7 @@ impl num::Num for I4 {
     }
 }
 
-impl num::One for U4 {
+impl num_traits::One for U4 {
     fn one() -> Self {
         unsafe { Self::new_unchecked(1) }
     }
@@ -385,7 +385,7 @@ impl num::One for U4 {
     }
 }
 
-impl num::One for I4 {
+impl num_traits::One for I4 {
     fn one() -> Self {
         unsafe { Self::new_unchecked(1) }
     }
@@ -398,7 +398,7 @@ impl num::One for I4 {
     }
 }
 
-impl num::Zero for U4 {
+impl num_traits::Zero for U4 {
     fn zero() -> Self {
         Self::MIN
     }
@@ -408,7 +408,7 @@ impl num::Zero for U4 {
     }
 }
 
-impl num::Zero for I4 {
+impl num_traits::Zero for I4 {
     fn zero() -> Self {
         unsafe { I4::new_unchecked(0) }
     }
