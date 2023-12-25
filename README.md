@@ -12,3 +12,9 @@ The notable exception is bitwise operations on `I4`s, since they're backed by `i
 - `v0.2.0`
     - `num::Integer` impls for `U4` and `I4`
     - Checked, saturating, and wrapping operation impls for `U4` and `I4`
+    - Bitwise operators for `U4` and `I4`
+    - `Display` impls for `U4` and `I4`
+- `v0.3.0`
+    - Basic `PackedNibbleVec` implementation
+    - `FromIterator` and `IntoIterator` impls on `PackedNibbleVec`
+    - SIMD decoding? Probably requires profiling
