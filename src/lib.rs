@@ -29,8 +29,8 @@
 //! primitive integral types. They are backed by the byte-width nibbles defined in the 
 //! [`nibble`] module, and as such benefit from the niche value optimization.
 //!
-//! For ecosystem compatibility, these types implement the [`num::Signed`] and [`num::Unsigned`]
-//! traits respectively, among other [`num`] traits.
+//! For ecosystem compatibility, these types implement the [`num_traits::Signed`] and 
+//! [`num_traits::Unsigned`] traits respectively, among other [`num_traits`] traits.
 
 // LINTS
 #[warn(missing_docs)]
