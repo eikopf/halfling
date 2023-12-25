@@ -7,12 +7,36 @@ use crate::{
 /// An unsigned integer backed by a nibble, representing a value from 0 to 15.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
-pub struct U4(UnsignedNibbleValue);
+pub struct U4(pub(crate) UnsignedNibbleValue);
 
 /// A signed integer backed by a nibble, representing a value from -8 to 7.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
-pub struct I4(SignedNibbleValue);
+pub struct I4(pub(crate) SignedNibbleValue);
+
+impl From<Nibble> for U4 {
+    fn from(value: Nibble) -> Self {
+        Self(value.0)
+    }
+}
+
+impl From<Nibble> for I4 {
+    fn from(value: Nibble) -> Self {
+        Self(value.0.to_signed_value())
+    }
+}
+
+impl From<U4> for Nibble {
+    fn from(value: U4) -> Self {
+        Nibble(value.0)
+    }
+}
+
+impl From<I4> for Nibble {
+    fn from(value: I4) -> Self {
+        Nibble(value.0.to_unsigned_value())
+    }
+}
 
 impl From<U4> for u8 {
     fn from(value: U4) -> Self {
@@ -47,6 +71,12 @@ impl TryFrom<i8> for I4 {
         } else {
             Err(InvalidNibbleError::Unrepresentable(value))
         }
+    }
+}
+
+impl std::fmt::Binary for U4 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        <u8 as std::fmt::Binary>::fmt(&self.get(), f)
     }
 }
 

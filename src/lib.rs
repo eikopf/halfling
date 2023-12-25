@@ -55,7 +55,6 @@ pub mod nibble;
 
 // PRIVATE MODULES
 
-/// Enums and functions for implementing types with nibble behaviour.
 mod internal;
 
 // TODOs

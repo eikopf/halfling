@@ -1,4 +1,4 @@
-use crate::error::InvalidNibbleError;
+use crate::{error::InvalidNibbleError, internal::UnsignedNibbleValue};
 
 /// A byte-width nibble, representing a 4-bit unit of data.
 ///
@@ -9,7 +9,7 @@ use crate::error::InvalidNibbleError;
 /// and alignment as `Nibble`
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
-pub struct Nibble(crate::internal::UnsignedNibbleValue);
+pub struct Nibble(pub(crate) UnsignedNibbleValue);
 
 impl std::fmt::Binary for Nibble {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
