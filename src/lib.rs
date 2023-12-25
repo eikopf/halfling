@@ -21,8 +21,7 @@
 //! able to decide for themselves how to interpret this data and therefore how (if at all) to
 //! define corresponding operations. If you want to use these operations, consider using one
 //! of the integral types [`U4`](integer::U4) or [`I4`](integer::I4), which are each backed
-//! by a [`Nibble`](nibble::Nibble) and behave (as much as possible) like the corresponding
-//! primitive integers.
+//! by nibbles and behave (as much as possible) like the corresponding primitive integers.
 //!
 //! # Integers - [`I4`](integer::I4) and [`U4`](integer::U4)
 //! Most commonly, nibbles are interpreted as integral values; these are included here as the

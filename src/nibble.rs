@@ -1,7 +1,6 @@
 use crate::error::InvalidNibbleError;
 
-/// A byte-width unsigned nibble, i.e. an
-/// integer from 0 (inclusive) up to 16 (exclusive).
+/// A byte-width nibble, representing a 4-bit unit of data.
 ///
 /// While this type does not explicitly guarantee any
 /// particular memory layout, it does guarantee that the

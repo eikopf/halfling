@@ -1,12 +1,12 @@
 
-/// The internal representation of a [`Nibble`],
+/// The internal representation of a [`Nibble`](crate::nibble::Nibble),
 /// used to guarantee that the compiler can apply
 /// niche value optimizations.
 ///
 /// To avoid excessive branching, this enum must
 /// be `repr(u8)` such that valid nibbles can be
 /// directly created via [`std::mem::transmute`];
-/// edge cases notwithstanding, the variants in this 
+/// edge cases notwithstanding the variants in this 
 /// enum should never actually be constructed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
@@ -29,15 +29,16 @@ pub enum UnsignedNibbleValue {
     _Fifteen = 0xf,
 }
 
-/// An enum of the allowed values of an [`I4`],
-/// used for conversion simplicity.
+/// An enum of the allowed values of an [`I4`](crate::integer::I4),
+/// using the bit patterns of an `i8` to simplify conversions between
+/// the two.
 ///
 /// Remember, the "4-bit" part of a nibble is
 /// just an API niceity, rather than a strict
 /// requirement. Here, we take advantage of the
 /// full byte of memory to use [`std::mem::transmute`]
 /// as much as possible, rather than defining some
-/// arbitrary conversion schema from a [`Nibble`].
+/// arbitrary conversion schema from a [`Nibble`](crate::nibble::Nibble).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(i8)]
 pub enum SignedNibbleValue {
