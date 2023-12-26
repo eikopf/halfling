@@ -1,15 +1,59 @@
+//! Byte-width signed and unsigned nibble-integers.
+//!
+//! # Relationship to Primitive Integer Types
+//! As much as possible, [`I4`] and [`U4`] are intended to act like the corresponding primitive 
+//! integer types (`i*` and `u*`); cases where they don't (with some minor exceptions) are 
+//! considered to be bugs. Please file an issue if you encounter one!
+//!
+//! Currently, they're backed by the corresponding byte-integers (`i8` and `u8`) with some
+//! enum trickery to enable the [niche value optimization](std::option#representation). While
+//! this isn't guaranteed[^1], it does greatly simplify the implementation:
+//! whenever possible, these types defer to the corresponding implementations defined in
+//! [`std`].
+//!
+//! # Relationship to [`Nibble`]
+//! Since a [`Nibble`] is intended to represent just a sequence of 4 bits, with no particular
+//! interpretation, the corresponding [`From`] and [`Into`] implementations on [`I4`] and [`U4`]
+//! correspond to extracting the underlying [`Nibble`][^2] and returning it.
+//!
+//! For a [`U4`], this is a trivial operation, since a `u8` in the range `[0, 16)` is guaranteed
+//! to have `0b0000` as the upper four bits, and currently [`U4`] and [`Nibble`] share the same
+//! underlying representation; this can be handled at compile time by [`std::mem::transmute`].
+//!
+//! For an [`I4`], the situation is slightly more complicated: the two's complement representation
+//! of signed integers means that we can't rely on just ignoring some portion of the bit pattern.
+//! The underlying value frequently needs to convert between 8-bit and 4-bit two's complement
+//! representations (e.g. for bitwise operations), and so real runtime work is required.
+//!
+//! For the conversion from an [`I4`] to a [`Nibble`], we take advantage of the fact that we can
+//! mask off the upper four bits of the `i8` value to get the corresponding 4-bit two's complement
+//! value.[^3] From this, it's quite simple to derive an expression for the reverse conversion:
+//! the upper four bits of the [`I4`] should be `0b1111` if and only if the significand of the
+//! [`Nibble`] is `1`.
+//!
+//! [^1]: Absolutely *do not*, for any reason, whatsoever, depend on this representation being
+//! consistent between versions.
+//!
+//! [^2]: Technically, there isn't an underlying nibble: these conversions correspond to
+//! modifying and returning the underlying bytes, and it just happens to be the case that they're
+//! relatively fast operations.
+//!
+//! [^3]: This fact only holds for the signed integers in the range [-8, 7], whose upper 4 bits
+//! are always either `0b1111` (when the 4th bit is `1`) or `0b0000` (when the 4th bit is `0`), 
+//! and so can effectively be compressed into the 4th bit (the significand of a nibble).
+
 use crate::{
     error::{InvalidNibbleError, NibbleParseError},
     internal::{SignedNibbleValue, UnsignedNibbleValue},
     nibble::Nibble,
 };
 
-/// An unsigned integer backed by a nibble, representing a value from 0 to 15.
+/// An unsigned integer representing a value from 0 to 15.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct U4(UnsignedNibbleValue);
 
-/// A signed integer backed by a nibble, representing a value from -8 to 7.
+/// A signed integer representing a value from -8 to 7.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct I4(SignedNibbleValue);

@@ -1,3 +1,5 @@
+//! Byte-width nibbles representing arbitrary data.
+
 use crate::{error::InvalidNibbleError, internal::{UnsignedNibbleValue, SignedNibbleValue}};
 
 /// A byte-width nibble, representing a 4-bit unit of data.

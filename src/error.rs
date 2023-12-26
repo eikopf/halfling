@@ -1,3 +1,5 @@
+//! Error types.
+
 use thiserror::Error;
 
 /// The error produced when trying to convert

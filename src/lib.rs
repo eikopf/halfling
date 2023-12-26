@@ -44,13 +44,8 @@
 
 // PUBLIC MODULES
 
-/// Error types.
 pub mod error;
-
-/// Integer types backed by nibbles.
 pub mod integer;
-
-/// Byte-width nibbles.
 pub mod nibble;
 
 // PRIVATE MODULES
