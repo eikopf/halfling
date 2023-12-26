@@ -188,6 +188,106 @@ impl std::ops::AddAssign for I4 {
     }
 }
 
+impl std::ops::BitAnd for U4 {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        // get nibble representations
+        let lhs: Nibble = self.into();
+        let rhs: Nibble = rhs.into();
+        // defer to the BitAnd impl on Nibble
+        (lhs & rhs).into()
+    }
+}
+
+impl std::ops::BitAnd for I4 {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        // get nibble representations
+        let lhs: Nibble = self.into();
+        let rhs: Nibble = rhs.into();
+        // defer to the BitAnd impl on Nibble
+        (lhs & rhs).into()
+    }
+}
+
+impl std::ops::BitAndAssign for U4 {
+    fn bitand_assign(&mut self, rhs: Self) {
+        *self = *self & rhs;
+    }
+}
+
+impl std::ops::BitAndAssign for I4 {
+    fn bitand_assign(&mut self, rhs: Self) {
+        *self = *self & rhs;
+    }
+}
+
+impl std::ops::BitOr for U4 {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let lhs: Nibble = self.into();
+        let rhs: Nibble = rhs.into();
+        (lhs | rhs).into()
+    }
+}
+
+impl std::ops::BitOr for I4 {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        let lhs: Nibble = self.into();
+        let rhs: Nibble = rhs.into();
+        (lhs | rhs).into()
+    }
+}
+
+impl std::ops::BitOrAssign for U4 {
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = *self | rhs;
+    }
+}
+
+impl std::ops::BitOrAssign for I4 {
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = *self | rhs;
+    }
+}
+
+impl std::ops::BitXor for U4 {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        let lhs: Nibble = self.into();
+        let rhs: Nibble = rhs.into();
+        (lhs ^ rhs).into()
+    }
+}
+
+impl std::ops::BitXor for I4 {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        let lhs: Nibble = self.into();
+        let rhs: Nibble = rhs.into();
+        (lhs ^ rhs).into()
+    }
+}
+
+impl std::ops::BitXorAssign for U4 {
+    fn bitxor_assign(&mut self, rhs: Self) {
+        *self = *self ^ rhs;
+    }
+}
+
+impl std::ops::BitXorAssign for I4 {
+    fn bitxor_assign(&mut self, rhs: Self) {
+        *self = *self ^ rhs;
+    }
+}
+
 impl std::ops::Div for U4 {
     type Output = Self;
 
@@ -289,6 +389,24 @@ impl std::ops::Neg for I4 {
             Ok(i4) => i4,
             Err(_) => panic!("Tried to represent {} in a halfling::integer::I4", value),
         }
+    }
+}
+
+impl std::ops::Not for U4 {
+    type Output= Self;
+
+    fn not(self) -> Self::Output {
+        let nibble: Nibble = self.into();
+        (!nibble).into()
+    }
+}
+
+impl std::ops::Not for I4 {
+    type Output= Self;
+
+    fn not(self) -> Self::Output {
+        let nibble: Nibble = self.into();
+        (!nibble).into()
     }
 }
 
