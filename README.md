@@ -8,8 +8,6 @@ The principal types `Nibble`, `I4`, and `U4` should operate as (almost) zero-cos
 
 The notable exception is bitwise operations on `I4`s, since they're backed by `i8`s which first need to be transformed into a 4-bit two's complement representation; this compromise is based on the assumption that the integral types ought to focus on fast arithmetic operations.
 
-The other major performance concern is inlining: these types frequently defer to preexisting functions, and so should usually be inlined by the compiler. If this doesn't happen in some edge cases, please file an issue; in the meantime we recommend enabling LTO in release builds.
-
 ## Roadmap
 - `v0.2.0`
     - `num::Integer` impls for `U4` and `I4`
