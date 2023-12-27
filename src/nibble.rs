@@ -274,6 +274,16 @@ impl Nibble {
     pub(crate) const fn signed_value(self) -> SignedNibbleValue {
         self.0.signed_value()
     }
+
+    /// Checks whether the given `u8` can be safely converted into a [`Nibble`],
+    /// returning this information as a `bool`.
+    ///
+    /// Prefer using this check over an ad-hoc implementation before making calls
+    /// to `Nibble::new_unchecked`, since it is faster than the naive `x < 16` and
+    /// can be tested in isolation.
+    pub(crate) const fn can_represent(value: u8) -> bool {
+        (value & 0xF0) == 0x00
+    }
 }
 
 #[cfg(test)]
@@ -361,5 +371,18 @@ mod tests {
         assert_eq!(seven.get(), 0b0111);
         assert_eq!(three.get(), 0b0011);
         assert_eq!(one.get(), 0b0001);
+    }
+
+    #[test]
+    fn nibble_can_represent_u8_check_is_correct() {
+        // valid cases
+        for i in 0..15u8 {
+            assert!(Nibble::can_represent(i));
+        }
+
+        // invalid cases
+        for i in 16..u8::MAX {
+            assert!(!Nibble::can_represent(i));
+        }
     }
 }
