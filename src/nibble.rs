@@ -1,6 +1,52 @@
 //! Byte-width nibbles representing arbitrary data.
+//!
+//! # Representation in Memory
+//! Calling these structures "nibbles" is something of a lie: fundamentally, Rust expects data to
+//! be byte-aligned. As a result, a [`Nibble`] is effectively a nice API around a `u8`,
+//! guaranteeing[^1] that its upper four bits (the upper nibble) will be uniformly zero.
+//!
+//! This is admittedly irritating, but it does have a few nice benefits; namely
+//! - common operations on [`Nibble`]s correspond directly to operations on `u8`s, which typically
+//! map to single instructions at the machine code level;
+//! - the invalid bit patterns can be marked as such, and this enables the
+//! [null value optimization](std::option#representation).
+//!
+//! You should see *no* overhead for using a [`Nibble`] (over a similarly checked `u8`), and any
+//! such behaviour is considered to be a bug. They are intended to be [zero cost
+//! abstractions](https://boats.gitlab.io/blog/post/zero-cost-abstractions/), and so they are
+//! implemented in such a way that they effectively "vanish" at compile-time.[^2]
+//!
+//! # Traits and Intended Usage
+//! A new user of `halfling` will probably notice that [`Nibble`] doesn't implement common numeric
+//! traits like [`std::ops::Add`], [`std::ops::Mul`], or [`std::ops::Sub`]. This is entirely
+//! deliberate, and will not change: *[`Nibble`]s are not intended to directly represent 
+//! integers*.
+//!
+//! The entire point of this type is to represent arbitrary data in 4 bits, and adding traits and
+//! methods that imply it is an unsigned integer would detract from this purpose. If you want
+//! specific integer behaviour, consider using [`I4`](crate::integer::I4) or 
+//! [`U4`](crate::integer::U4) instead.
+//!
+//! [`Nibble`]s do support bitwise operations, however, as the bit pattern is considered to be
+//! "unopinionated data" with no particular interpretation. This usage typically appears when 
+//! using [`Nibble`]s as small bitsets, or in dense collections of small enumerations.[^3]
+//!
+//! [^1]: Of course, this assumes that the [`Nibble`] in question was created correctly; invalid
+//! calls to `Nibble::new_unchecked` violate these guarantees and are undefined behaviour, as 
+//! they correspond to invalid calls to [`std::mem::transmute`].
+//!
+//! [^2]: Again, it's more appropriate to say that they *ought* to vanish at compile time. Edge
+//! cases in `rustc` and LLVM can produce bizarre inefficiencies, and we welcome bug reports and
+//! issues that document/reproduce this behaviour.
+//!
+//! [^3]: See [`konig`](https://crates.io/crates/konig)'s `QuadBoard` for an example of this 
+//! second kind of usage, where the dense collection is given by 4 `u64` channels, and where each
+//! horizontal section of 4 bits corresponds to a particular chess piece at some location.
 
-use crate::{error::InvalidNibbleError, internal::{UnsignedNibbleValue, SignedNibbleValue}};
+use crate::{
+    error::InvalidNibbleError,
+    internal::{SignedNibbleValue, UnsignedNibbleValue},
+};
 
 /// A byte-width nibble, representing a 4-bit unit of data.
 ///
