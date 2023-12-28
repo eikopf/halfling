@@ -222,7 +222,7 @@ impl From<Nibble> for UnsignedNibbleValue {
 
 impl From<Nibble> for u8 {
     fn from(value: Nibble) -> Self {
-        unsafe { std::mem::transmute(value) }
+        value.unsigned_value() as u8
     }
 }
 
@@ -245,15 +245,23 @@ impl Nibble {
     /// the smallest possible size that a nibble could be packed into.
     pub const BITS: u32 = 4u32;
 
-    /// Constructs a new nibble representing the given value
+    /// Constructs a new [`Nibble`] representing the given value
     /// without checking invariants.
     ///
     /// # Safety
     /// `value` must be strictly less than 16.
     #[inline]
     pub const unsafe fn new_unchecked(value: u8) -> Self {
-        debug_assert!(value < 16);
         std::mem::transmute(value)
+    }
+
+    /// Constructs a new [`Nibble`] representing the given value,
+    /// or panics if this is not possible. Prefer using `try_from`
+    /// instead if you do not need the construction to be `const`.
+    #[inline]
+    pub const fn new_checked(value: u8) -> Self {
+        assert!(Nibble::can_represent(value));
+        unsafe { Nibble::new_unchecked(value) }
     }
 
     /// Consumes `self` and returns a `u8` representing its value, guaranteed
@@ -281,6 +289,7 @@ impl Nibble {
     /// Prefer using this check over an ad-hoc implementation before making calls
     /// to `Nibble::new_unchecked`, since it is faster than the naive `x < 16` and
     /// can be tested in isolation.
+    #[inline]
     pub(crate) const fn can_represent(value: u8) -> bool {
         (value & 0xF0) == 0x00
     }
@@ -376,12 +385,12 @@ mod tests {
     #[test]
     fn nibble_can_represent_u8_check_is_correct() {
         // valid cases
-        for i in 0..15u8 {
+        for i in 0..=15u8 {
             assert!(Nibble::can_represent(i));
         }
 
         // invalid cases
-        for i in 16..u8::MAX {
+        for i in 16..=u8::MAX {
             assert!(!Nibble::can_represent(i));
         }
     }
