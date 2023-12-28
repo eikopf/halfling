@@ -258,6 +258,9 @@ impl Nibble {
     /// Constructs a new [`Nibble`] representing the given value,
     /// or panics if this is not possible. Prefer using `try_from`
     /// instead if you do not need the construction to be `const`.
+    ///
+    /// # Panics
+    /// This functions will panic if `value >= 16`.
     #[inline]
     pub const fn new_checked(value: u8) -> Self {
         assert!(Nibble::can_represent(value));

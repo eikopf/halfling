@@ -15,14 +15,6 @@
 //! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which prevents us 
 //! from constructing a single type that genuinely consumes only a nibble of memory.
 //!
-//! Very intentionally, [`Nibble`](nibble::Nibble) *does not* implement any of
-//! [`Add`](std::ops::Add), [`Sub`](std::ops::Sub), [`Mul`](std::ops::Mul), or similar
-//! operations: it is only a unit of data, and a downstream consumer of this crate should be
-//! able to decide for themselves how to interpret this data and therefore how (if at all) to
-//! define corresponding operations. If you want to use these operations, consider using one
-//! of the integral types [`U4`](integer::U4) or [`I4`](integer::I4), which are each backed
-//! by nibbles and behave (as much as possible) like the corresponding primitive integers.
-//!
 //! # Integers - [`I4`](integer::I4) and [`U4`](integer::U4)
 //! Most commonly, nibbles are interpreted as integral values; these are included here as the
 //! [`I4`](integer::I4) and [`U4`](integer::U4) types, which behave like the corresponding

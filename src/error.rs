@@ -22,6 +22,6 @@ pub enum InvalidNibbleError<Src: num_traits::Num> {
 pub enum NibbleParseError<Src: num_traits::Num> {
     /// Occurs if a string cannot be parsed into the `Src` type.
     ParseError(std::num::ParseIntError),
-    /// Occurs if the target type cannot represent a given value,
+    /// Occurs if the target type cannot represent a given value.
     ValueError(InvalidNibbleError<Src>),
 }
