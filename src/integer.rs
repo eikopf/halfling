@@ -500,6 +500,23 @@ impl std::ops::RemAssign for I4 {
     }
 }
 
+impl std::ops::Shl for U4 {
+    type Output = Self;
+
+    fn shl(self, rhs: Self) -> Self::Output {
+        let value: u8 = self.get() << rhs.get();
+        match U4::try_from(value) {
+            Ok(u4) => u4,
+            Err(_) => panic!(
+                "Tried to represent {} << {} ({}) with a halfling::integer::U4",
+                self.get(),
+                rhs.get(),
+                value,
+            ),
+        }
+    }
+}
+
 impl std::ops::Sub for U4 {
     type Output = Self;
 
