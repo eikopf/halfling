@@ -551,6 +551,81 @@ impl std::ops::Shl for U4 {
     }
 }
 
+impl std::ops::Shl for I4 {
+    type Output = Self;
+
+    fn shl(self, rhs: Self) -> Self::Output {
+        let value: i8 = self.get() << rhs.get();
+        match I4::try_from(value) {
+            Ok(i4) => i4,
+            Err(_) => panic!(
+                "Tried to represent {} << {} ({}) with a halfling::integer::I4",
+                self.get(),
+                rhs.get(),
+                value,
+            ),
+        }
+    }
+}
+
+impl std::ops::ShlAssign for U4 {
+    fn shl_assign(&mut self, rhs: Self) {
+        *self = *self << rhs;
+    }
+}
+
+impl std::ops::ShlAssign for I4 {
+    fn shl_assign(&mut self, rhs: Self) {
+        *self = *self << rhs;
+    }
+}
+
+impl std::ops::Shr for U4 {
+    type Output = Self;
+
+    fn shr(self, rhs: Self) -> Self::Output {
+        let value: u8 = self.get() >> rhs.get();
+        match U4::try_from(value) {
+            Ok(u4) => u4,
+            Err(_) => panic!(
+                "Tried to represent {} >> {} ({}) with a halfling::integer::U4",
+                self.get(),
+                rhs.get(),
+                value,
+            ),
+        }
+    }
+}
+
+impl std::ops::Shr for I4 {
+    type Output = Self;
+
+    fn shr(self, rhs: Self) -> Self::Output {
+        let value: i8 = self.get() >> rhs.get();
+        match I4::try_from(value) {
+            Ok(i4) => i4,
+            Err(_) => panic!(
+                "Tried to represent {} >> {} ({}) with a halfling::integer::I4",
+                self.get(),
+                rhs.get(),
+                value,
+            ),
+        }
+    }
+}
+
+impl std::ops::ShrAssign for U4 {
+    fn shr_assign(&mut self, rhs: Self) {
+        *self = *self >> rhs;
+    }
+}
+
+impl std::ops::ShrAssign for I4 {
+    fn shr_assign(&mut self, rhs: Self) {
+        *self = *self >> rhs;
+    }
+}
+
 impl std::ops::Sub for U4 {
     type Output = Self;
 
