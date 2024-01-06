@@ -1,8 +1,8 @@
 //! Byte-width signed and unsigned nibble-integers.
 //!
 //! # Relationship to Primitive Integer Types
-//! As much as possible, [`I4`] and [`U4`] are intended to act like the corresponding primitive 
-//! integer types (`i*` and `u*`); cases where they don't (with some minor exceptions) are 
+//! As much as possible, [`I4`] and [`U4`] are intended to act like the corresponding primitive
+//! integer types (`i*` and `u*`); cases where they don't (with some minor exceptions) are
 //! considered to be bugs. Please file an issue if you encounter one!
 //!
 //! Currently, they're backed by the corresponding byte-integers (`i8` and `u8`) with some
@@ -39,14 +39,26 @@
 //! relatively fast operations.
 //!
 //! [^3]: This fact only holds for the signed integers in the range [-8, 7], whose upper 4 bits
-//! are always either `0b1111` (when the 4th bit is `1`) or `0b0000` (when the 4th bit is `0`), 
+//! are always either `0b1111` (when the 4th bit is `1`) or `0b0000` (when the 4th bit is `0`),
 //! and so can effectively be compressed into the 4th bit (the significand of a nibble).
 
 use crate::{
     error::{InvalidNibbleError, NibbleParseError},
     internal::{SignedNibbleValue, UnsignedNibbleValue},
-    nibble::Nibble,
+    nibble::{Nibble, NibbleValue},
 };
+
+/// A trait for integral values that act like nibbles.
+///
+/// Because nibbles have such a limited range of values, the
+/// [`num_traits::Zero`] and [`num_traits::One`] bounds required
+/// by [`num_traits::Num`] have been omitted.
+pub trait NibbleInteger: NibbleValue
+where
+    Self: num_traits::NumOps,
+    Self::Inner: num_traits::NumOps,
+{
+}
 
 /// An unsigned integer representing a value from 0 to 15.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -57,6 +69,28 @@ pub struct U4(UnsignedNibbleValue);
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct I4(SignedNibbleValue);
+
+impl NibbleValue for U4 {
+    type Inner = u8;
+
+    #[inline(always)]
+    fn inner(&self) -> Self::Inner {
+        self.get()
+    }
+}
+
+impl NibbleValue for I4 {
+    type Inner = i8;
+
+    #[inline(always)]
+    fn inner(&self) -> Self::Inner {
+        self.get()
+    }
+}
+
+impl NibbleInteger for U4 {}
+
+impl NibbleInteger for I4 {}
 
 impl From<Nibble> for U4 {
     fn from(value: Nibble) -> Self {
@@ -437,7 +471,7 @@ impl std::ops::Neg for I4 {
 }
 
 impl std::ops::Not for U4 {
-    type Output= Self;
+    type Output = Self;
 
     fn not(self) -> Self::Output {
         let nibble: Nibble = self.into();
@@ -446,7 +480,7 @@ impl std::ops::Not for U4 {
 }
 
 impl std::ops::Not for I4 {
-    type Output= Self;
+    type Output = Self;
 
     fn not(self) -> Self::Output {
         let nibble: Nibble = self.into();
@@ -589,7 +623,10 @@ impl num_traits::Signed for I4 {
     }
 
     fn signum(&self) -> Self {
-        self.get().signum().try_into().expect("0, 1, and -1 are valid nibbles")
+        self.get()
+            .signum()
+            .try_into()
+            .expect("0, 1, and -1 are valid nibbles")
     }
 
     fn is_positive(&self) -> bool {

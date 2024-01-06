@@ -19,27 +19,27 @@
 //! # Traits and Intended Usage
 //! A new user of `halfling` will probably notice that [`Nibble`] doesn't implement common numeric
 //! traits like [`std::ops::Add`], [`std::ops::Mul`], or [`std::ops::Sub`]. This is entirely
-//! deliberate, and will not change: *[`Nibble`]s are not intended to directly represent 
+//! deliberate, and will not change: *[`Nibble`]s are not intended to directly represent
 //! integers*.
 //!
 //! The entire point of this type is to represent arbitrary data in 4 bits, and adding traits and
 //! methods that imply it is an unsigned integer would detract from this purpose. If you want
-//! specific integer behaviour, consider using [`I4`](crate::integer::I4) or 
+//! specific integer behaviour, consider using [`I4`](crate::integer::I4) or
 //! [`U4`](crate::integer::U4) instead.
 //!
 //! [`Nibble`]s do support bitwise operations, however, as the bit pattern is considered to be
-//! "unopinionated data" with no particular interpretation. This usage typically appears when 
+//! "unopinionated data" with no particular interpretation. This usage typically appears when
 //! using [`Nibble`]s as small bitsets, or in dense collections of small enumerations.[^3]
 //!
 //! [^1]: Of course, this assumes that the [`Nibble`] in question was created correctly; invalid
-//! calls to `Nibble::new_unchecked` violate these guarantees and are undefined behaviour, as 
+//! calls to `Nibble::new_unchecked` violate these guarantees and are undefined behaviour, as
 //! they correspond to invalid calls to [`std::mem::transmute`].
 //!
 //! [^2]: Again, it's more appropriate to say that they *ought* to vanish at compile time. Edge
 //! cases in `rustc` and LLVM can produce bizarre inefficiencies, and we welcome bug reports and
 //! issues that document/reproduce this behaviour.
 //!
-//! [^3]: See [`konig`](https://crates.io/crates/konig)'s `QuadBoard` for an example of this 
+//! [^3]: See [`konig`](https://crates.io/crates/konig)'s `QuadBoard` for an example of this
 //! second kind of usage, where the dense collection is given by 4 `u64` channels, and where each
 //! horizontal section of 4 bits corresponds to a particular chess piece at some location.
 
@@ -48,16 +48,44 @@ use crate::{
     internal::{SignedNibbleValue, UnsignedNibbleValue},
 };
 
+/// A trait for types which act like nibbles, in the sense
+/// that they have exactly 16 possible variants and can be
+/// converted into and from [`Nibble`]s.
+pub trait NibbleValue: Into<Nibble> + From<Nibble> {
+    /// The "underlying value," in the sense that the implementing
+    /// type represents a subset of this value and is (probably)
+    /// backed by it.
+    type Inner: TryInto<Self> + From<Self>;
+
+    /// Returns a `Self::Inner` corresponding to the value of `self`. Generally,
+    /// prefer using other functions that operate on values of `Self` instead,
+    /// since they can provide additional API guarantees.
+    ///
+    /// Types like [`U4`](crate::integer::U4), [`I4`](crate::integer::I4), and
+    /// [`Nibble`] provide this functionality in terms of corresponding `get(&self)`
+    /// functions, which are `const` and so cannot be included in this trait; implementing
+    /// types are encouraged to do the same.
+    fn inner(&self) -> Self::Inner;
+}
+
 /// A byte-width nibble, representing a 4-bit unit of data.
 ///
 /// While this type does not explicitly guarantee any
 /// particular memory layout, it does guarantee that the
 /// [null pointer optimization](std::option#representation)
 /// applies: [`Option<Nibble>`](std::option) will always have the same size
-/// and alignment as `Nibble`
+/// and alignment as `Nibble`.
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[repr(transparent)]
 pub struct Nibble(UnsignedNibbleValue);
+
+impl NibbleValue for Nibble {
+    type Inner = u8;
+
+    fn inner(&self) -> Self::Inner {
+        self.get()
+    }
+}
 
 impl std::fmt::Binary for Nibble {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
