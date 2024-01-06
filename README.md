@@ -11,4 +11,4 @@ The notable exception is bitwise operations on `I4`s, since they're backed by `i
 ## Roadmap
 - `v0.2.0`
     - Checked, saturating, and wrapping operation impls for `U4` and `I4`
-    - Bitshift operators for `U4` and `I4`
+    - Binary operations with primitive types (`u8` and `i8`) for `U4` and `I4`
