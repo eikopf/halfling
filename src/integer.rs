@@ -42,6 +42,9 @@
 //! are always either `0b1111` (when the 4th bit is `1`) or `0b0000` (when the 4th bit is `0`),
 //! and so can effectively be compressed into the 4th bit (the significand of a nibble).
 
+// NOTE: crates like newtype_derive might be better alternatives to doing all of this
+// by hand, though they assume unchecked wrapping (i.e. From<...> rather than TryFrom<...>) 
+
 use crate::{
     error::{InvalidNibbleError, NibbleParseError},
     internal::{SignedNibbleValue, UnsignedNibbleValue},
