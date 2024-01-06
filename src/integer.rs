@@ -652,7 +652,7 @@ impl num_traits::One for U4 {
     where
         Self: PartialEq,
     {
-        self.0 == UnsignedNibbleValue::_One
+        self.0 == UnsignedNibbleValue::_0
     }
 }
 
@@ -675,7 +675,7 @@ impl num_traits::Zero for U4 {
     }
 
     fn is_zero(&self) -> bool {
-        self.0 == UnsignedNibbleValue::_Zero
+        self.0 == UnsignedNibbleValue::_0
     }
 }
 
