@@ -79,6 +79,8 @@ pub trait NibbleValue: Into<Nibble> + From<Nibble> {
 #[repr(transparent)]
 pub struct Nibble(UnsignedNibbleValue);
 
+// LOCAL TRAITS
+
 impl NibbleValue for Nibble {
     type Inner = u8;
 
@@ -86,6 +88,8 @@ impl NibbleValue for Nibble {
         self.get()
     }
 }
+
+// DISPLAY TRAITS
 
 impl std::fmt::Binary for Nibble {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -118,6 +122,8 @@ impl std::fmt::Display for Nibble {
         write!(f, "{:#06b}", self)
     }
 }
+
+// OPERATOR TRAITS
 
 impl std::ops::BitAnd for Nibble {
     type Output = Self;
@@ -236,6 +242,8 @@ impl std::ops::ShrAssign<u8> for Nibble {
     }
 }
 
+// CONVERSION TRAITS
+
 impl From<UnsignedNibbleValue> for Nibble {
     fn from(value: UnsignedNibbleValue) -> Self {
         Self(value)
@@ -300,6 +308,15 @@ impl Nibble {
     #[inline]
     pub const fn get(self) -> u8 {
         unsafe { std::mem::transmute(self) }
+    }
+
+    /// Converts a byte (`u8`) into a pair of nibbles, where
+    /// the upper nibble is on the left and the lower nibble is
+    /// on the right.
+    pub const fn pair_from_byte(value: u8) -> (Self, Self) {
+        let upper = unsafe { Self::new_unchecked(value >> 4) };
+        let lower = unsafe { Self::new_unchecked(value & 0x0F) };
+        (upper, lower)
     }
 
     /// Consumes `self` and returns the underlying [`UnsignedNibbleValue`].
