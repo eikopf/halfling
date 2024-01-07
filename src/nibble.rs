@@ -313,6 +313,7 @@ impl Nibble {
     /// Converts a byte (`u8`) into a pair of nibbles, where
     /// the upper nibble is on the left and the lower nibble is
     /// on the right.
+    #[inline]
     pub const fn pair_from_byte(value: u8) -> (Self, Self) {
         let upper = unsafe { Self::new_unchecked(value >> 4) };
         let lower = unsafe { Self::new_unchecked(value & 0x0F) };

@@ -43,7 +43,3 @@ pub mod nibble;
 // PRIVATE MODULES
 
 mod internal;
-
-// TODOs
-//mod packed_array;
-//mod packed_vec;
