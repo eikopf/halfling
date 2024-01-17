@@ -6,26 +6,23 @@
 //! when showing its bit pattern to the user (i.e. in the [`std::fmt::Binary`]
 //! implementation on [`Nibble`](crate::nibble::Nibble).
 //!
-//! By comparison, the [`SignedNibbleValue`] is just an enumeration of
-//! all the values that a 4-bit two's complement signed integer *would* be
-//! allowed to take; these values are stored as `i8`s, and as such both the
-//! most and least significant bits have the potential to be set.
-//!
 //! # Conversions
-//! Conversions between these two enums are handled by their `signed_value`
-//! and `unsigned_value` functions respectively, which aren't given as [`From`]
-//! impls because they're `const`.
+//! While it's trivial to convert an [`UnsignedNibbleValue`] into a `u8`, the
+//! conversion into an `i8` is less obvious; the bit pattern of a two's complement
+//! signed integer depends significantly on its bitwidth.
 //!
 //! Mapping an unsigned value to a signed one is simple, since it just corresponds
-//! to masking off the upper four bits (proof by inspection).
+//! to masking off the upper four bits (proof by inspection). The reverse mapping 
+//! is slightly more complicated, since we need to set the upper 4 bits to `0xF` 
+//! if the value is negative (i.e. the highest bit in the nibble is `1`). This 
+//! should ideally also be branchless.[^1]
 //!
-//! The reverse mapping is slightly more complicated, since we need to set the
-//! upper 4 bits to `0xF` if the value is negative (i.e. the highest bit in the
-//! nibble is `1`). This also needs to be a branchless operation, to avoid branch
-//! misses on an operation as common as this one; remember that this needs to be
-//! called every time a bitwise operation is applied to an [`I4`](crate::integer::I4).
+//! [^1]: The algorithm described here appears to work for the conversion between
+//! any `u2N` and `iN` (that is, conversion to a half-length signed integer from a
+//! full length unsigned integer), due to the fact that the upper half of the
+//! unsigned integer is uniformly identical to the leading bit of the lower half.
 
-/// The internal representation of a [`Nibble`](crate::nibble::Nibble),
+/// The internal representation of a [`Nibble`](crate::Nibble),
 /// used to guarantee that the compiler can apply
 /// niche value optimizations.
 ///
