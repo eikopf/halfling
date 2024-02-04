@@ -8,10 +8,10 @@
 //! opposed to genuinely necessary memory-saving constructs).
 //!
 //! `halfling`'s [`Nibble`] is a byte-width struct containing a single nibble, which enables
-//! the [niche value optimization](https://www.noahlev.org/papers/popl22src-filling-a-niche.pdf) 
+//! the [niche value optimization](https://www.noahlev.org/papers/popl22src-filling-a-niche.pdf)
 //! (a [`Nibble`] has 4 unused bits, and hence 240 such niches are available).
-//! They are byte-width due to [Rust's fundamental expectation that all types are at least 
-//! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which prevents us 
+//! They are byte-width due to [Rust's fundamental expectation that all types are at least
+//! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which prevents us
 //! from constructing a single type that genuinely consumes only a nibble of memory.
 
 #[warn(missing_docs)]
@@ -22,7 +22,6 @@
 #[warn(clippy::missing_errors_doc)]
 #[warn(clippy::missing_panics_doc)]
 #[warn(clippy::missing_safety_doc)]
-
 mod internal;
 use thiserror::Error;
 
@@ -47,7 +46,7 @@ pub enum InvalidNibbleError<Src: std::fmt::LowerHex> {
 /// [null pointer optimization](std::option#representation)
 /// applies: [`Option<Nibble>`](std::option) will always have the same size
 /// and alignment as `Nibble`.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(transparent)]
 pub struct Nibble(internal::UnsignedNibbleValue);
 
@@ -270,8 +269,8 @@ impl Nibble {
     /// Consumes `self` and returns a `u8` representing its value, guaranteed
     /// to be at most 15.
     #[inline]
-    pub const fn get(self) -> u8 {
-        unsafe { std::mem::transmute(self) }
+    pub const fn get(&self) -> u8 {
+        self.0 as u8
     }
 
     /// Converts a byte (`u8`) into a pair of nibbles, where
@@ -299,6 +298,64 @@ impl Nibble {
     #[inline]
     pub(crate) const fn can_represent(value: u8) -> bool {
         (value & 0xF0) == 0x00
+    }
+}
+
+/// The bits of a [`Nibble`].
+///
+/// Conceptually, the bits in a [`Bits`] are
+/// stored in *reverse* order, so calling
+/// `Bits::first_is_set()` will return the least
+/// significant bit.
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
+pub struct Bits(bool, bool, bool, bool);
+
+impl From<Nibble> for Bits {
+    fn from(value: Nibble) -> Self {
+        let value: u8 = value.get();
+
+        Self(
+            (value & 0b0001) == 1,
+            (value & 0b0010) == 2,
+            (value & 0b0100) == 4,
+            (value & 0b1000) == 8,
+        )
+    }
+}
+
+impl From<Bits> for Nibble {
+    fn from(value: Bits) -> Self {
+        let bit1: u8 = value.0.into();
+        let bit2: u8 = value.1.into();
+        let bit3: u8 = value.2.into();
+        let bit4: u8 = value.3.into();
+
+        unsafe { Nibble::new_unchecked(bit1 + (bit2 << 1) + (bit3 << 2) + (bit4 << 3)) }
+    }
+}
+
+impl Bits {
+    /// A [`Bits`] with all bits set to 0.
+    pub const CLEARED: Self = Self(false, false, false, false);
+
+    /// Returns the least significant bit.
+    pub const fn first_is_set(&self) -> bool {
+        self.0
+    }
+
+    /// Returns the second least signficant bit.
+    pub const fn second_is_set(&self) -> bool {
+        self.1
+    }
+
+    /// Returns the second most significant bit.
+    pub const fn third_is_set(&self) -> bool {
+        self.2
+    }
+
+    /// Returns the most signficant bit.
+    pub const fn fourth_is_set(&self) -> bool {
+        self.3
     }
 }
 
