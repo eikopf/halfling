@@ -244,6 +244,11 @@ impl Nibble {
     /// the smallest possible size that a nibble could be packed into.
     pub const BITS: u32 = 4u32;
 
+    /// Returns a representation of `self` as a `Bits` value.
+    pub fn as_bits(&self) -> Bits {
+        (*self).into()
+    }
+
     /// Constructs a new [`Nibble`] representing the given value
     /// without checking invariants.
     ///
@@ -305,8 +310,8 @@ impl Nibble {
 ///
 /// Conceptually, the bits in a [`Bits`] are
 /// stored in *reverse* order, so calling
-/// `Bits::first_is_set()` will return the least
-/// significant bit.
+/// `Bits::first_bit_is_set()` will return the
+/// least significant bit.
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub struct Bits(bool, bool, bool, bool);
 
@@ -334,27 +339,36 @@ impl From<Bits> for Nibble {
     }
 }
 
+impl<T> From<Bits> for (T, T, T, T)
+where
+    T: From<bool>,
+{
+    fn from(value: Bits) -> Self {
+        value.into()
+    }
+}
+
 impl Bits {
     /// A [`Bits`] with all bits set to 0.
     pub const CLEARED: Self = Self(false, false, false, false);
 
     /// Returns the least significant bit.
-    pub const fn first_is_set(&self) -> bool {
+    pub const fn first_bit_is_set(&self) -> bool {
         self.0
     }
 
     /// Returns the second least signficant bit.
-    pub const fn second_is_set(&self) -> bool {
+    pub const fn second_bit_is_set(&self) -> bool {
         self.1
     }
 
     /// Returns the second most significant bit.
-    pub const fn third_is_set(&self) -> bool {
+    pub const fn third_bit_is_set(&self) -> bool {
         self.2
     }
 
     /// Returns the most signficant bit.
-    pub const fn fourth_is_set(&self) -> bool {
+    pub const fn fourth_bit_is_set(&self) -> bool {
         self.3
     }
 }
