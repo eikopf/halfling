@@ -21,20 +21,7 @@ use thiserror::Error;
 
 mod internal;
 
-/// The error produced when trying to convert
-/// an unrepresentable integer into a [`Nibble`].
-#[derive(Debug, Error)]
-pub enum InvalidNibbleError<Src: std::fmt::LowerHex> {
-    /// Occurs when attempting to construct a [`Nibble`] with
-    /// a value larger than a byte.
-    #[error("Attempted to construct a nibble representing a value larger than a byte.")]
-    TooLarge(Src),
-    /// Occurs when attempting to construct a [`Nibble`] with
-    /// an unrepresentable byte, i.e. a byte whose upper 4 bits are not uniformly 0.
-    #[error("Attempted to construct a nibble representing {0:#06x}.")]
-    Unrepresentable(Src),
-}
-
+/// The error produced if a conversion from an integral type to a [`Nibble`] fails.
 #[derive(Debug, Error)]
 #[error("failed to convert {0:?} into a nibble.")]
 pub struct NibbleTryFromIntError<T>(T);
@@ -46,9 +33,11 @@ pub struct NibbleTryFromIntError<T>(T);
 /// [null pointer optimization](std::option#representation)
 /// applies: [`Option<Nibble>`](std::option) will always have the same size
 /// and alignment as `Nibble`.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct Nibble(internal::UnsignedNibbleValue);
+
+// CONVERSION TRAITS
 
 /// Generates `TryFrom` impls for `Nibble`.
 macro_rules! nibble_try_from_impls {
@@ -122,53 +111,29 @@ nibble_try_into_impls!(
     i8, std::num::NonZeroU8
 );
 
-// CONVERSION TRAITS
-
-impl From<internal::UnsignedNibbleValue> for Nibble {
-    fn from(value: internal::UnsignedNibbleValue) -> Self {
-        Self(value)
-    }
-}
-
-impl From<Nibble> for internal::UnsignedNibbleValue {
-    fn from(value: Nibble) -> Self {
-        value.0
-    }
-}
-
 // DISPLAY TRAITS
 
-impl std::fmt::Binary for Nibble {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        <u8 as std::fmt::Binary>::fmt(&u8::from(*self), f)
-    }
+/// Generates impls for the given formatting traits.
+macro_rules! nibble_fmt_impls {
+    ($($name:path),+) => {
+        $(
+            impl $name for crate::Nibble {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    <u8 as $name>::fmt(&self.get(), f)
+                }
+            }
+        )+
+    };
 }
 
-impl std::fmt::Octal for Nibble {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        <u8 as std::fmt::Octal>::fmt(&u8::from(*self), f)
-    }
-}
-
-impl std::fmt::LowerHex for Nibble {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        <u8 as std::fmt::LowerHex>::fmt(&u8::from(*self), f)
-    }
-}
-
-impl std::fmt::UpperHex for Nibble {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        <u8 as std::fmt::UpperHex>::fmt(&u8::from(*self), f)
-    }
-}
-
-impl std::fmt::Display for Nibble {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // this needs to be 6 (rather than 4) because the width includes
-        // the prefix.
-        write!(f, "{:#06b}", self)
-    }
-}
+nibble_fmt_impls!(
+    std::fmt::Binary,
+    std::fmt::Octal,
+    std::fmt::LowerHex,
+    std::fmt::UpperHex,
+    std::fmt::Display,
+    std::fmt::Debug
+);
 
 // OPERATOR TRAITS
 
