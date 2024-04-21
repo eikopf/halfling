@@ -392,7 +392,7 @@ mod tests {
     #[test]
     fn nibble_into_u8_is_correct() {
         for i in 0..=15 {
-            let nibble = Nibble::try_from(i as u8).unwrap();
+            let nibble = Nibble::try_from(i).unwrap();
             let byte: u8 = nibble.into();
             assert_eq!(byte, i);
         }
