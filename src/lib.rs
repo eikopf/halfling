@@ -1,4 +1,4 @@
-//! Basic utilities and structures for handling nibbles, both in raw data and integral forms.
+//! Basic utilities and structures for handling nibbles.
 //!
 //! # Nibbles
 //! A [nibble](https://en.wikipedia.org/wiki/Nibble) (sometimes also *nybble* or *nybl*)
@@ -16,14 +16,10 @@
 
 #[warn(missing_docs)]
 #[warn(rustdoc::all)]
-#[warn(clippy::missing_docs_in_private_items)]
-#[warn(clippy::style)]
-#[warn(clippy::todo)]
-#[warn(clippy::missing_errors_doc)]
-#[warn(clippy::missing_panics_doc)]
-#[warn(clippy::missing_safety_doc)]
-mod internal;
+#[warn(clippy::all)]
 use thiserror::Error;
+
+mod internal;
 
 /// The error produced when trying to convert
 /// an unrepresentable integer into a [`Nibble`].
@@ -39,6 +35,10 @@ pub enum InvalidNibbleError<Src: std::fmt::LowerHex> {
     Unrepresentable(Src),
 }
 
+#[derive(Debug, Error)]
+#[error("failed to convert {0:?} into a nibble.")]
+pub struct NibbleTryFromIntError<T>(T);
+
 /// A byte-width nibble, representing a 4-bit unit of data.
 ///
 /// While this type does not explicitly guarantee any
@@ -49,6 +49,78 @@ pub enum InvalidNibbleError<Src: std::fmt::LowerHex> {
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(transparent)]
 pub struct Nibble(internal::UnsignedNibbleValue);
+
+/// Generates `TryFrom` impls for `Nibble`.
+macro_rules! nibble_try_from_impls {
+    ($($int:ty),+) => {
+        $(
+            impl std::convert::TryFrom<$int> for crate::Nibble {
+                type Error = crate::NibbleTryFromIntError<$int>;
+
+                fn try_from(value: $int) -> Result<Self, Self::Error> {
+                    let byte: u8 = value.try_into().map_err(|_| crate::NibbleTryFromIntError(value))?;
+
+                    match Self::can_represent(byte) {
+                        true => Ok(unsafe { Self::new_unchecked(byte) }),
+                        false => Err(crate::NibbleTryFromIntError(value)),
+                    }
+                }
+            }
+        )+
+    };
+}
+
+/// Generates `From<Nibble>` impls for the given types.
+macro_rules! nibble_into_impls {
+    ($($target:ty),+) => {
+        $(
+            impl std::convert::From<crate::Nibble> for $target {
+                fn from(value: crate::Nibble) -> Self {
+                    value.get().into()
+                }
+            }
+        )+
+    };
+}
+
+/// Generates `TryFrom<Nibble>` impls for the given types.
+macro_rules! nibble_try_into_impls {
+    ($($target:ty),+) => {
+        $(
+            impl std::convert::TryFrom<crate::Nibble> for $target {
+                type Error = <$target as std::convert::TryFrom<u8>>::Error;
+
+                fn try_from(value: crate::Nibble) -> Result<Self, Self::Error> {
+                    value.get().try_into()
+                }
+            }
+        )+
+    };
+}
+
+nibble_try_from_impls!(
+    u8, i8, std::num::NonZeroU8,
+    u16, i16,
+    u32, i32,
+    u64, i64, 
+    u128, i128, 
+    usize, isize,
+    char, bool
+);
+
+nibble_into_impls!(
+    u8,
+    u16, i16,
+    u32, i32,
+    u64, i64,
+    u128, i128,
+    usize, isize,
+    char
+);
+
+nibble_try_into_impls!(
+    i8, std::num::NonZeroU8
+);
 
 // CONVERSION TRAITS
 
@@ -61,23 +133,6 @@ impl From<internal::UnsignedNibbleValue> for Nibble {
 impl From<Nibble> for internal::UnsignedNibbleValue {
     fn from(value: Nibble) -> Self {
         value.0
-    }
-}
-
-impl From<Nibble> for u8 {
-    fn from(value: Nibble) -> Self {
-        value.unsigned_value() as u8
-    }
-}
-
-impl TryFrom<u8> for Nibble {
-    type Error = InvalidNibbleError<u8>;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            0..=15 => Ok(unsafe { Nibble::new_unchecked(value) }),
-            _ => Err(InvalidNibbleError::Unrepresentable(value)),
-        }
     }
 }
 
@@ -270,7 +325,7 @@ impl Nibble {
     /// to be at most 15.
     #[inline]
     pub const fn get(&self) -> u8 {
-        self.0 as u8
+        self.0.get()
     }
 
     /// Converts a byte (`u8`) into a pair of nibbles, where
@@ -281,12 +336,6 @@ impl Nibble {
         let upper = unsafe { Self::new_unchecked(value >> 4) };
         let lower = unsafe { Self::new_unchecked(value & 0x0F) };
         (upper, lower)
-    }
-
-    /// Consumes `self` and returns the underlying [`UnsignedNibbleValue`].
-    #[inline]
-    pub(crate) const fn unsigned_value(self) -> internal::UnsignedNibbleValue {
-        self.0
     }
 
     /// Checks whether the given `u8` can be safely converted into a [`Nibble`],
