@@ -244,11 +244,6 @@ impl Nibble {
     /// the smallest possible size that a nibble could be packed into.
     pub const BITS: u32 = 4u32;
 
-    /// Returns a representation of `self` as a `Bits` value.
-    pub fn as_bits(&self) -> Bits {
-        (*self).into()
-    }
-
     /// Constructs a new [`Nibble`] representing the given value
     /// without checking invariants.
     ///
@@ -264,7 +259,7 @@ impl Nibble {
     /// instead if you do not need the construction to be `const`.
     ///
     /// # Panics
-    /// This functions will panic if `value >= 16`.
+    /// This function will panic if `value >= 16`.
     #[inline]
     pub const fn new_checked(value: u8) -> Self {
         assert!(Nibble::can_represent(value));
@@ -303,73 +298,6 @@ impl Nibble {
     #[inline]
     pub(crate) const fn can_represent(value: u8) -> bool {
         (value & 0xF0) == 0x00
-    }
-}
-
-/// The bits of a [`Nibble`].
-///
-/// Conceptually, the bits in a [`Bits`] are
-/// stored in *reverse* order, so calling
-/// `Bits::first_bit_is_set()` will return the
-/// least significant bit.
-#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
-pub struct Bits(bool, bool, bool, bool);
-
-impl From<Nibble> for Bits {
-    fn from(value: Nibble) -> Self {
-        let value: u8 = value.get();
-
-        Self(
-            (value & 0b0001) == 1,
-            (value & 0b0010) == 2,
-            (value & 0b0100) == 4,
-            (value & 0b1000) == 8,
-        )
-    }
-}
-
-impl From<Bits> for Nibble {
-    fn from(value: Bits) -> Self {
-        let bit1: u8 = value.0.into();
-        let bit2: u8 = value.1.into();
-        let bit3: u8 = value.2.into();
-        let bit4: u8 = value.3.into();
-
-        unsafe { Nibble::new_unchecked(bit1 + (bit2 << 1) + (bit3 << 2) + (bit4 << 3)) }
-    }
-}
-
-impl<T> From<Bits> for (T, T, T, T)
-where
-    T: From<bool>,
-{
-    fn from(value: Bits) -> Self {
-        value.into()
-    }
-}
-
-impl Bits {
-    /// A [`Bits`] with all bits set to 0.
-    pub const CLEARED: Self = Self(false, false, false, false);
-
-    /// Returns the least significant bit.
-    pub const fn first_bit_is_set(&self) -> bool {
-        self.0
-    }
-
-    /// Returns the second least signficant bit.
-    pub const fn second_bit_is_set(&self) -> bool {
-        self.1
-    }
-
-    /// Returns the second most significant bit.
-    pub const fn third_bit_is_set(&self) -> bool {
-        self.2
-    }
-
-    /// Returns the most signficant bit.
-    pub const fn fourth_bit_is_set(&self) -> bool {
-        self.3
     }
 }
 

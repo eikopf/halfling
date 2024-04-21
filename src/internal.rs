@@ -55,6 +55,11 @@ pub enum UnsignedNibbleValue {
 impl UnsignedNibbleValue {
     /// Consumes self and returns the corresponding signed integer (as an `i8`)
     /// that it represents according to a 4-bit two's complement representation.
+    ///
+    /// This algorithm relies on the fact that for an "`i4`," its corresponding
+    /// `i8` representation will have an upper nibble of either `0x0` or `0xF`,
+    /// and this corresponds exactly to whether the significant of the `i4` is
+    /// set.
     #[inline]
     pub const fn signed_value(self) -> i8 {
         // extract byte and significand
@@ -63,6 +68,12 @@ impl UnsignedNibbleValue {
         // set upper bits iff significand is 1
         let int = byte | (significand * 0xF0);
         unsafe { std::mem::transmute(int) }
+    }
+
+    /// Consumes `self` and returns the corresponding `u8`.
+    #[inline]
+    pub const fn get(self) -> u8 {
+        return self as u8
     }
 }
 
