@@ -135,6 +135,40 @@ nibble_fmt_impls!(
     std::fmt::Debug
 );
 
+// CONSTANTS
+
+macro_rules! nibble_constants {
+    ($($name:ident := $value:literal),+) => {
+        impl crate::Nibble {
+            $(
+                #[doc = concat!(stringify!($value), " as a [`Nibble`].")]
+                pub const $name: Self = unsafe { Self::new_unchecked($value) };
+            )+
+        }
+    };
+}
+
+nibble_constants!(
+    MIN := 0,
+    ZERO := 0,
+    ONE := 1,
+    TWO := 2,
+    THREE := 3,
+    FOUR := 4,
+    FIVE := 5,
+    SIX := 6,
+    SEVEN := 7,
+    EIGHT := 8,
+    NINE := 9,
+    TEN := 10,
+    ELEVEN := 11,
+    TWELVE := 12,
+    THIRTEEN := 13,
+    FOURTEEN := 14,
+    FIFTEEN := 15,
+    MAX := 15
+);
+
 // OPERATOR TRAITS
 
 impl std::ops::BitAnd for Nibble {
@@ -218,7 +252,7 @@ impl std::ops::Shl<u8> for Nibble {
         match Nibble::try_from(result) {
             Ok(nibble) => nibble,
             Err(_) => panic!(
-                "The value {:#x} created by {} << {} cannot be represented as a nibble.",
+                "the value {:#x} (created by {} << {}) cannot be represented as a nibble",
                 result, lhs, rhs
             ),
         }
@@ -241,7 +275,7 @@ impl std::ops::Shr<u8> for Nibble {
         match Nibble::try_from(result) {
             Ok(nibble) => nibble,
             Err(_) => panic!(
-                "The value {:#x} created by {} >> {} cannot be represented as a nibble.",
+                "the value {:#x} (created by {} >> {}) cannot be represented as a nibble.",
                 result, lhs, rhs
             ),
         }
@@ -378,7 +412,7 @@ mod tests {
 
     #[test]
     fn shl_produces_correct_values() {
-        let one = Nibble::try_from(1u8).unwrap();
+        let one = Nibble::ONE;
         let two = one << 1;
         let four = one << 2;
         let eight = one << 3;
