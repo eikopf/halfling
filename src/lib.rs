@@ -326,6 +326,17 @@ impl Nibble {
     /// Converts a byte (`u8`) into a pair of nibbles, where
     /// the upper nibble is on the left and the lower nibble is
     /// on the right.
+    ///
+    /// ## Example
+    /// ```
+    /// use halfling::Nibble;
+    ///
+    /// let byte: u8 = 0x4A;
+    /// let (upper, lower) = Nibble::pair_from_byte(byte);
+    ///
+    /// assert_eq!(upper.get(), 0x4);
+    /// assert_eq!(lower.get(), 0xA);
+    /// ```
     #[inline]
     pub const fn pair_from_byte(value: u8) -> (Self, Self) {
         let upper = unsafe { Self::new_unchecked(value >> 4) };
