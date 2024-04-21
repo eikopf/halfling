@@ -14,9 +14,9 @@
 //! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which prevents us
 //! from constructing a single type that genuinely consumes only a nibble of memory.
 
-#[warn(missing_docs)]
-#[warn(rustdoc::all)]
-#[warn(clippy::all)]
+#![warn(missing_docs)]
+#![warn(rustdoc::all)]
+#![warn(clippy::all)]
 use thiserror::Error;
 
 mod internal;
@@ -88,28 +88,26 @@ macro_rules! nibble_try_into_impls {
 }
 
 nibble_try_from_impls!(
-    u8, i8, std::num::NonZeroU8,
-    u16, i16,
-    u32, i32,
-    u64, i64, 
-    u128, i128, 
-    usize, isize,
-    char, bool
-);
-
-nibble_into_impls!(
     u8,
-    u16, i16,
-    u32, i32,
-    u64, i64,
-    u128, i128,
-    usize, isize,
-    char
+    i8,
+    std::num::NonZeroU8,
+    u16,
+    i16,
+    u32,
+    i32,
+    u64,
+    i64,
+    u128,
+    i128,
+    usize,
+    isize,
+    char,
+    bool
 );
 
-nibble_try_into_impls!(
-    i8, std::num::NonZeroU8
-);
+nibble_into_impls!(u8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize, char);
+
+nibble_try_into_impls!(i8, std::num::NonZeroU8);
 
 // DISPLAY TRAITS
 
@@ -309,15 +307,13 @@ impl Nibble {
     }
 
     /// Constructs a new [`Nibble`] representing the given value,
-    /// or panics if this is not possible. Prefer using `try_from`
-    /// instead if you do not need the construction to be `const`.
-    ///
-    /// # Panics
-    /// This function will panic if `value >= 16`.
+    /// or returns `None` if it is greater than `15`.
     #[inline]
-    pub const fn new_checked(value: u8) -> Self {
-        assert!(Nibble::can_represent(value));
-        unsafe { Nibble::new_unchecked(value) }
+    pub const fn new(value: u8) -> Option<Self> {
+        match Nibble::can_represent(value) {
+            true => unsafe { Some(Nibble::new_unchecked(value)) },
+            false => None,
+        }
     }
 
     /// Consumes `self` and returns a `u8` representing its value, guaranteed

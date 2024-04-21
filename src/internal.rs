@@ -22,6 +22,8 @@
 //! full length unsigned integer), due to the fact that the upper half of the
 //! unsigned integer is uniformly identical to the leading bit of the lower half.
 
+#![allow(dead_code)]
+
 /// The internal representation of a [`Nibble`](crate::Nibble),
 /// used to guarantee that the compiler can apply
 /// niche value optimizations.
@@ -73,7 +75,7 @@ impl UnsignedNibbleValue {
     /// Consumes `self` and returns the corresponding `u8`.
     #[inline]
     pub const fn get(self) -> u8 {
-        return self as u8
+        self as u8
     }
 }
 
