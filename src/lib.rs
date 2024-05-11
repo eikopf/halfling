@@ -344,6 +344,25 @@ impl Nibble {
         (upper, lower)
     }
 
+    /// Converts a pair of [`Nibble`] values into a byte, where the
+    /// upper nibble is the first argument and the lower nibble is
+    /// the second.
+    ///
+    /// ## Example
+    /// ```
+    /// use halfling::Nibble;
+    ///
+    /// let upper = Nibble::new(0xB).unwrap();
+    /// let lower = Nibble::new(0x2).unwrap();
+    /// let byte = Nibble::byte_from_pair(upper, lower);
+    ///
+    /// assert_eq!(byte, 0xB2);
+    /// ```
+    #[inline]
+    pub const fn byte_from_pair(upper: Self, lower: Self) -> u8 {
+        (upper.get() << 4) & lower.get()
+    }
+
     /// Checks whether the given `u8` can be safely converted into a [`Nibble`],
     /// returning this information as a `bool`.
     ///
