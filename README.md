@@ -14,7 +14,7 @@ let quick_nibble = unsafe { Nibble::new_unchecked(6) };
 // using Nibble::new_unchecked with a value greater than 16 is undefined behaviour
 ```
 
-Because the smallest unit of memory in Rust is a byte, it isn't possible to construct `Nibble` with the redundant upper bits. However, it's possible to use some enum trickery to tell the compiler which `u8` values are valid `Nibble` values, and so the other 240 values are available as niches.
+Because the smallest unit of memory in Rust is a byte, it isn't possible to construct `Nibble` without the redundant upper bits. However, it's possible to use some enum trickery to tell the compiler which `u8` values are valid `Nibble` values, and so the other 240 values are available as niches.
 
 ```rust
 // a Nibble is a byte-width struct

@@ -12,9 +12,9 @@
 //! signed integer depends significantly on its bitwidth.
 //!
 //! Mapping an unsigned value to a signed one is simple, since it just corresponds
-//! to masking off the upper four bits (proof by inspection). The reverse mapping 
-//! is slightly more complicated, since we need to set the upper 4 bits to `0xF` 
-//! if the value is negative (i.e. the highest bit in the nibble is `1`). This 
+//! to masking off the upper four bits (proof by inspection). The reverse mapping
+//! is slightly more complicated, since we need to set the upper 4 bits to `0xF`
+//! if the value is negative (i.e. the highest bit in the nibble is `1`). This
 //! should ideally also be branchless.[^1]
 //!
 //! [^1]: The algorithm described here appears to work for the conversion between
@@ -60,7 +60,7 @@ impl UnsignedNibbleValue {
     ///
     /// This algorithm relies on the fact that for an "`i4`," its corresponding
     /// `i8` representation will have an upper nibble of either `0x0` or `0xF`,
-    /// and this corresponds exactly to whether the significant of the `i4` is
+    /// and this corresponds exactly to whether the significand of the `i4` is
     /// set.
     #[inline]
     pub const fn signed_value(self) -> i8 {
@@ -69,6 +69,7 @@ impl UnsignedNibbleValue {
         let significand = byte >> 3;
         // set upper bits iff significand is 1
         let int = byte | (significand * 0xF0);
+        // SAFETY: u8 and i8 have the same size and alignment
         unsafe { std::mem::transmute(int) }
     }
 
@@ -90,84 +91,36 @@ mod tests {
 
     #[test]
     fn unsigned_nibble_value_to_signed_value_is_correct() {
-        assert_eq!(
-            UnsignedNibbleValue::_0.signed_value(),
-            0
-        );
+        assert_eq!(UnsignedNibbleValue::_0.signed_value(), 0);
 
-        assert_eq!(
-            UnsignedNibbleValue::_1.signed_value(),
-            1
-        );
+        assert_eq!(UnsignedNibbleValue::_1.signed_value(), 1);
 
-        assert_eq!(
-            UnsignedNibbleValue::_2.signed_value(),
-            2
-        );
+        assert_eq!(UnsignedNibbleValue::_2.signed_value(), 2);
 
-        assert_eq!(
-            UnsignedNibbleValue::_3.signed_value(),
-            3
-        );
+        assert_eq!(UnsignedNibbleValue::_3.signed_value(), 3);
 
-        assert_eq!(
-            UnsignedNibbleValue::_4.signed_value(),
-            4
-        );
+        assert_eq!(UnsignedNibbleValue::_4.signed_value(), 4);
 
-        assert_eq!(
-            UnsignedNibbleValue::_5.signed_value(),
-            5
-        );
+        assert_eq!(UnsignedNibbleValue::_5.signed_value(), 5);
 
-        assert_eq!(
-            UnsignedNibbleValue::_6.signed_value(),
-            6
-        );
+        assert_eq!(UnsignedNibbleValue::_6.signed_value(), 6);
 
-        assert_eq!(
-            UnsignedNibbleValue::_7.signed_value(),
-            7
-        );
+        assert_eq!(UnsignedNibbleValue::_7.signed_value(), 7);
 
-        assert_eq!(
-            UnsignedNibbleValue::_8.signed_value(),
-            -8
-        );
+        assert_eq!(UnsignedNibbleValue::_8.signed_value(), -8);
 
-        assert_eq!(
-            UnsignedNibbleValue::_9.signed_value(),
-            -7
-        );
+        assert_eq!(UnsignedNibbleValue::_9.signed_value(), -7);
 
-        assert_eq!(
-            UnsignedNibbleValue::_A.signed_value(),
-            -6
-        );
+        assert_eq!(UnsignedNibbleValue::_A.signed_value(), -6);
 
-        assert_eq!(
-            UnsignedNibbleValue::_B.signed_value(),
-            -5
-        );
+        assert_eq!(UnsignedNibbleValue::_B.signed_value(), -5);
 
-        assert_eq!(
-            UnsignedNibbleValue::_C.signed_value(),
-            -4
-        );
+        assert_eq!(UnsignedNibbleValue::_C.signed_value(), -4);
 
-        assert_eq!(
-            UnsignedNibbleValue::_D.signed_value(),
-            -3
-        );
+        assert_eq!(UnsignedNibbleValue::_D.signed_value(), -3);
 
-        assert_eq!(
-            UnsignedNibbleValue::_E.signed_value(),
-            -2
-        );
+        assert_eq!(UnsignedNibbleValue::_E.signed_value(), -2);
 
-        assert_eq!(
-            UnsignedNibbleValue::_F.signed_value(),
-            -1
-        );
+        assert_eq!(UnsignedNibbleValue::_F.signed_value(), -1);
     }
 }
