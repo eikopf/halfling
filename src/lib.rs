@@ -360,7 +360,7 @@ impl Nibble {
     /// ```
     #[inline]
     pub const fn byte_from_pair(upper: Self, lower: Self) -> u8 {
-        (upper.get() << 4) & lower.get()
+        (upper.get() << 4) | lower.get()
     }
 
     /// Checks whether the given `u8` can be safely converted into a [`Nibble`],
