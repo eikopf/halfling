@@ -28,11 +28,17 @@ pub struct NibbleTryFromIntError<T>(T);
 
 /// A byte-width nibble, representing a 4-bit unit of data.
 ///
-/// While this type does not explicitly guarantee any
-/// particular memory layout, it does guarantee that the
-/// [null pointer optimization](std::option#representation)
-/// applies: [`Option<Nibble>`](std::option) will always have the same size
-/// and alignment as `Nibble`.
+/// # Memory Layout
+/// The bit pattern of a `Nibble` is strictly zero in the upper
+/// four bits, i.e. the identity `(x.get() & 0x0F) == x.get()`
+/// holds for all `Nibble` values `x`.
+///
+/// Though the compiler doesn't _strictly_ guarantee it, you
+/// may rely on the [null pointer optimisation](std::option#representation):
+/// [`Option<Nibble>`](std::option) will have the same size
+/// and alignment as `Nibble`. This also implies that you may
+/// use `std::mem::transmute` from `Nibble` to `Option<Nibble>`,
+/// and from `Some::<Nibble>(_)` to `Nibble`.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct Nibble(internal::UnsignedNibbleValue);
