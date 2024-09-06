@@ -19,6 +19,7 @@
 #![warn(clippy::all)]
 use thiserror::Error;
 
+#[macro_use]
 mod internal;
 
 /// The error produced if a conversion from an integral type to a [`Nibble`] fails.
@@ -45,54 +46,6 @@ pub struct Nibble(internal::UnsignedNibbleValue);
 
 // CONVERSION TRAITS
 
-/// Generates `TryFrom` impls for `Nibble`.
-macro_rules! nibble_try_from_impls {
-    ($($int:ty),+) => {
-        $(
-            impl std::convert::TryFrom<$int> for crate::Nibble {
-                type Error = crate::NibbleTryFromIntError<$int>;
-
-                fn try_from(value: $int) -> Result<Self, Self::Error> {
-                    let byte: u8 = value.try_into().map_err(|_| crate::NibbleTryFromIntError(value))?;
-
-                    match Self::can_represent(byte) {
-                        true => Ok(unsafe { Self::new_unchecked(byte) }),
-                        false => Err(crate::NibbleTryFromIntError(value)),
-                    }
-                }
-            }
-        )+
-    };
-}
-
-/// Generates `From<Nibble>` impls for the given types.
-macro_rules! nibble_into_impls {
-    ($($target:ty),+) => {
-        $(
-            impl std::convert::From<crate::Nibble> for $target {
-                fn from(value: crate::Nibble) -> Self {
-                    value.get().into()
-                }
-            }
-        )+
-    };
-}
-
-/// Generates `TryFrom<Nibble>` impls for the given types.
-macro_rules! nibble_try_into_impls {
-    ($($target:ty),+) => {
-        $(
-            impl std::convert::TryFrom<crate::Nibble> for $target {
-                type Error = <$target as std::convert::TryFrom<u8>>::Error;
-
-                fn try_from(value: crate::Nibble) -> Result<Self, Self::Error> {
-                    value.get().try_into()
-                }
-            }
-        )+
-    };
-}
-
 nibble_try_from_impls!(
     u8,
     i8,
@@ -117,19 +70,6 @@ nibble_try_into_impls!(i8, std::num::NonZeroU8);
 
 // DISPLAY TRAITS
 
-/// Generates impls for the given formatting traits.
-macro_rules! nibble_fmt_impls {
-    ($($name:path),+) => {
-        $(
-            impl $name for crate::Nibble {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    <u8 as $name>::fmt(&self.get(), f)
-                }
-            }
-        )+
-    };
-}
-
 nibble_fmt_impls!(
     std::fmt::Binary,
     std::fmt::Octal,
@@ -140,17 +80,6 @@ nibble_fmt_impls!(
 );
 
 // CONSTANTS
-
-macro_rules! nibble_constants {
-    ($($name:ident := $value:literal),+) => {
-        impl crate::Nibble {
-            $(
-                #[doc = concat!(stringify!($value), " as a [`Nibble`].")]
-                pub const $name: Self = unsafe { Self::new_unchecked($value) };
-            )+
-        }
-    };
-}
 
 nibble_constants!(
     MIN := 0,
