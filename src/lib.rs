@@ -103,13 +103,15 @@ nibble_constants!(
 );
 
 // OPERATOR TRAITS
+// TODO: (maybe) add a macro for implementing the {Op}Assign traits
+// TODO: implement Bit{op}<Rhs = u8, Output = u8>
 
 impl std::ops::BitAnd for Nibble {
     type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self::Output {
-        let left: u8 = self.into();
-        let right: u8 = rhs.into();
+        let left: u8 = self.get();
+        let right: u8 = rhs.get();
 
         // upper bits are all zero,
         // so no need to mask them off
@@ -128,8 +130,8 @@ impl std::ops::BitOr for Nibble {
     type Output = Self;
 
     fn bitor(self, rhs: Self) -> Self::Output {
-        let left: u8 = self.into();
-        let right: u8 = rhs.into();
+        let left: u8 = self.get();
+        let right: u8 = rhs.get();
 
         // the upper 4 bits are all zero,
         // so no need to mask them off.
@@ -148,8 +150,8 @@ impl std::ops::BitXor for Nibble {
     type Output = Self;
 
     fn bitxor(self, rhs: Self) -> Self::Output {
-        let left: u8 = self.into();
-        let right: u8 = rhs.into();
+        let left: u8 = self.get();
+        let right: u8 = rhs.get();
         let result = left ^ right;
         unsafe { Nibble::new_unchecked(result) }
     }
@@ -165,26 +167,26 @@ impl std::ops::Not for Nibble {
     type Output = Self;
 
     fn not(self) -> Self::Output {
-        let value: u8 = self.into();
-        let mask: u8 = 0b00001111;
-
-        // a bitwise not will flip the upper four bits
-        // to ones, so we mask them off.
-        let result: u8 = !value & mask;
+        let value: u8 = self.get();
+        let result: u8 = !value & 0x0F;
         unsafe { Nibble::new_unchecked(result) }
     }
 }
+
+// TODO: make the shift ops non-panicking
+// TODO: add shift ops for usize
+// TODO: implement wrapping and saturating shift ops
 
 impl std::ops::Shl<u8> for Nibble {
     type Output = Nibble;
 
     fn shl(self, rhs: u8) -> Self::Output {
-        let lhs: u8 = self.into();
+        let lhs: u8 = self.get();
         let result = lhs << rhs;
 
-        match Nibble::try_from(result) {
-            Ok(nibble) => nibble,
-            Err(_) => panic!(
+        match Nibble::can_represent(result) {
+            true => unsafe { Nibble::new_unchecked(result) },
+            false => panic!(
                 "the value {:#x} (created by {} << {}) cannot be represented as a nibble",
                 result, lhs, rhs
             ),
@@ -202,7 +204,7 @@ impl std::ops::Shr<u8> for Nibble {
     type Output = Nibble;
 
     fn shr(self, rhs: u8) -> Self::Output {
-        let lhs: u8 = self.into();
+        let lhs: u8 = self.get();
         let result = lhs >> rhs;
 
         match Nibble::try_from(result) {
@@ -275,7 +277,7 @@ impl Nibble {
     #[inline]
     pub const fn pair_from_byte(value: u8) -> (Self, Self) {
         let upper = unsafe { Self::new_unchecked(value >> 4) };
-        let lower = unsafe { Self::new_unchecked(value & 0x0F) };
+        let lower = unsafe { Self::new_unchecked(value & Self::BYTE_MASK) };
         (upper, lower)
     }
 
@@ -308,6 +310,9 @@ impl Nibble {
     pub(crate) const fn can_represent(value: u8) -> bool {
         (value & 0xF0) == 0x00
     }
+
+    /// For all `x: u8`, `x & Nibble::BYTE_MASK` is a valid Nibble.
+    pub(crate) const BYTE_MASK: u8 = 0x0F;
 }
 
 #[cfg(test)]
