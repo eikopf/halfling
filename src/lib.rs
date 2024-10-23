@@ -15,9 +15,9 @@
 //! [niche value optimization](std::option#representation) will apply.
 //! (a [`Nibble`] has 4 unused bits, and hence 240 such niches are available).
 //! They are byte-width due to [Rust's fundamental expectation that types are
-//! at byte-aligned](https://doc.rust-lang.org/reference/type-layout.html),
-//! which prevents us from constructing a single type that genuinely consumes
-//! only a nibble of memory.
+//! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html),which
+//! prevents us from constructing a single type that genuinely consumes only a
+//! nibble of memory.
 //!
 //! # Ordering Nibbles
 //! When representing larger units of data in terms of bytes, we need to agree
