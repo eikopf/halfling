@@ -1,18 +1,35 @@
 //! Basic utilities and structures for handling nibbles.
 //!
 //! # Nibbles
-//! A [nibble](https://en.wikipedia.org/wiki/Nibble) (sometimes also *nybble* or *nybl*)
-//! is a 4-bit unit of data, equivalent in size to a single-digit hexadecimal number.
-//! Historically, nibbles were used in early computers to represent small enumerations, e.g.
-//! the individual digits of a base-10 number, but today they are largely API details (as
-//! opposed to genuinely necessary memory-saving constructs).
+//! A [nibble](https://en.wikipedia.org/wiki/Nibble) (sometimes also *nybble*
+//! or *nybl*) is a 4-bit unit of data, equivalent in size to a single-digit
+//! hexadecimal number.
 //!
-//! `halfling`'s [`Nibble`] is a byte-width struct containing a single nibble, which enables
-//! the [niche value optimization](https://www.noahlev.org/papers/popl22src-filling-a-niche.pdf)
+//! Historically, nibbles were used in early computers to represent small
+//! enumerations, e.g. the individual digits of a base-10 number, but today
+//! they are largely API details (as opposed to genuinely necessary
+//! memory-saving constructs).
+//!
+//! `halfling`'s [`Nibble`] is a byte-width struct containing a single nibble,
+//! which guarantees that the
+//! [niche value optimization](std::option#representation) will apply.
 //! (a [`Nibble`] has 4 unused bits, and hence 240 such niches are available).
-//! They are byte-width due to [Rust's fundamental expectation that all types are at least
-//! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which prevents us
-//! from constructing a single type that genuinely consumes only a nibble of memory.
+//! They are byte-width due to [Rust's fundamental expectation that types are
+//! at byte-aligned](https://doc.rust-lang.org/reference/type-layout.html),
+//! which prevents us from constructing a single type that genuinely consumes
+//! only a nibble of memory.
+//!
+//! # Ordering Nibbles
+//! When representing larger units of data in terms of bytes, we need to agree
+//! on the "correct" order of the bytes. The two most-common representations
+//! are little-endian (LE) and big-endian (BE), which define the first byte to
+//! be the least and most significant byte respectively.
+//!
+//! Similarly, a byte can be divided into two [`Nibble`] values in two ways,
+//! depending on whether the least-significant nibble is first or second. The
+//! unit structs [`Le`] and [`Be`] provide implementations of the [`Ordering`]
+//! trait for these two orderings, and are used to control the order in which
+//! a [`Nibbles`] iterator produces values.
 
 #![warn(missing_docs)]
 #![warn(rustdoc::all)]
@@ -22,7 +39,109 @@ use thiserror::Error;
 #[macro_use]
 mod internal;
 
-/// The error produced if a conversion from an integral type to a [`Nibble`] fails.
+/// An ordering for the two [`Nibble`] values in a `u8`.
+///
+/// For a given `byte: u8`, its lower nibble is given by `x & 0xF0`, and its
+/// upper nibble is given by `x >> 4`. The choice of ordering can be seen as
+/// analogous to endianness.
+///
+/// Actually, this *is* endianness. Because it's not a well-defined term, we
+/// are free to use little-endian and big-endian to describe the two possible
+/// nibble orderings; the corresponding implementors are [`Le`] and [`Be`].
+pub trait Ordering {
+    /// Splits a `byte` into two [`Nibble`] values such that they are ordered
+    /// from left-to-right.
+    fn split_byte(byte: u8) -> (Nibble, Nibble);
+
+    /// Combines `first` and `second` into a single `u8` according to the
+    /// ordering defined by the implementor.
+    fn join_nibbles(first: Nibble, second: Nibble) -> u8;
+}
+
+/// The little-endian [`Nibble`] [`Ordering`] marker.
+pub struct Le;
+
+impl Ordering for Le {
+    #[inline]
+    fn split_byte(byte: u8) -> (Nibble, Nibble) {
+        let (upper, lower) = Nibble::pair_from_byte(byte);
+        (lower, upper)
+    }
+
+    #[inline]
+    fn join_nibbles(first: Nibble, second: Nibble) -> u8 {
+        let lower = first.get();
+        let upper = second.get() << 4;
+        upper | lower
+    }
+}
+
+/// The big-endian [`Nibble`] [`Ordering`] marker.
+pub struct Be;
+
+impl Ordering for Be {
+    #[inline]
+    fn split_byte(byte: u8) -> (Nibble, Nibble) {
+        let (upper, lower) = Nibble::pair_from_byte(byte);
+        (upper, lower)
+    }
+
+    #[inline]
+    fn join_nibbles(first: Nibble, second: Nibble) -> u8 {
+        let lower = second.get();
+        let upper = first.get() << 4;
+        upper | lower
+    }
+}
+
+#[derive(Debug, Clone)]
+/// A [`Nibble`] iterator over a `&[u8]` with [`Ordering`] defined by `O`.
+pub struct Nibbles<'a, O> {
+    bytes: std::slice::Iter<'a, u8>,
+    next: Option<Nibble>,
+    ordering: std::marker::PhantomData<O>,
+}
+
+impl<'a> Nibbles<'a, Le> {
+    /// Constructs a new [`Nibbles`] iterating over the nibbles of `bytes` in
+    /// little-endian order.
+    pub fn new_le(bytes: &'a [u8]) -> Self {
+        Nibbles {
+            bytes: bytes.iter(),
+            next: None,
+            ordering: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'a> Nibbles<'a, Be> {
+    /// Constructs a new [`Nibbles`] iterating over the nibbles of `bytes` in
+    /// big-endian order.
+    pub fn new_be(bytes: &'a [u8]) -> Self {
+        Nibbles {
+            bytes: bytes.iter(),
+            next: None,
+            ordering: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'a, O: Ordering> Iterator for Nibbles<'a, O> {
+    type Item = Nibble;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.take().or_else(|| {
+            self.bytes.next().map(|&byte| {
+                let (first, second) = O::split_byte(byte);
+                self.next = Some(second);
+                first
+            })
+        })
+    }
+}
+
+/// The error produced if a conversion from an integral type to a [`Nibble`]
+/// fails.
 #[derive(Debug, Error)]
 #[error("failed to convert {0:?} into a nibble.")]
 pub struct NibbleTryFromIntError<T>(T);
@@ -263,49 +382,19 @@ impl Nibble {
     /// Converts a byte (`u8`) into a pair of nibbles, where
     /// the upper nibble is on the left and the lower nibble is
     /// on the right.
-    ///
-    /// ## Example
-    /// ```
-    /// use halfling::Nibble;
-    ///
-    /// let byte: u8 = 0x4A;
-    /// let (upper, lower) = Nibble::pair_from_byte(byte);
-    ///
-    /// assert_eq!(upper.get(), 0x4);
-    /// assert_eq!(lower.get(), 0xA);
-    /// ```
     #[inline]
-    pub const fn pair_from_byte(value: u8) -> (Self, Self) {
+    pub(crate) const fn pair_from_byte(value: u8) -> (Self, Self) {
         let upper = unsafe { Self::new_unchecked(value >> 4) };
         let lower = unsafe { Self::new_unchecked(value & Self::BYTE_MASK) };
         (upper, lower)
     }
 
-    /// Converts a pair of [`Nibble`] values into a byte, where the
-    /// upper nibble is the first argument and the lower nibble is
-    /// the second.
-    ///
-    /// ## Example
-    /// ```
-    /// use halfling::Nibble;
-    ///
-    /// let upper = Nibble::new(0xB).unwrap();
-    /// let lower = Nibble::new(0x2).unwrap();
-    /// let byte = Nibble::byte_from_pair(upper, lower);
-    ///
-    /// assert_eq!(byte, 0xB2);
-    /// ```
-    #[inline]
-    pub const fn byte_from_pair(upper: Self, lower: Self) -> u8 {
-        (upper.get() << 4) | lower.get()
-    }
-
     /// Checks whether the given `u8` can be safely converted into a [`Nibble`],
     /// returning this information as a `bool`.
     ///
-    /// Prefer using this check over an ad-hoc implementation before making calls
-    /// to `Nibble::new_unchecked`, since it is faster than the naive `x < 16` and
-    /// can be tested independently.
+    /// Prefer using this check over an ad-hoc implementation before making
+    /// calls to `Nibble::new_unchecked`, since it is faster than the naive
+    /// `x < 16` and can be tested independently.
     #[inline]
     pub(crate) const fn can_represent(value: u8) -> bool {
         (value & 0xF0) == 0x00
@@ -413,5 +502,30 @@ mod tests {
         for i in 16..=u8::MAX {
             assert!(!Nibble::can_represent(i));
         }
+    }
+
+    #[test]
+    fn correct_nibbles_iteration_order() {
+        let bytes = vec![0xA6, 0x3D, 0x47];
+
+        let le = Nibbles::new_le(&bytes).collect::<Vec<_>>();
+        let be = Nibbles::new_be(&bytes).collect::<Vec<_>>();
+
+        assert_eq!(le.len(), 6);
+        assert_eq!(be.len(), 6);
+
+        assert_eq!(le[0].get(), 0x6);
+        assert_eq!(le[1].get(), 0xA);
+        assert_eq!(le[2].get(), 0xD);
+        assert_eq!(le[3].get(), 0x3);
+        assert_eq!(le[4].get(), 0x7);
+        assert_eq!(le[5].get(), 0x4);
+
+        assert_eq!(be[0].get(), 0xA);
+        assert_eq!(be[1].get(), 0x6);
+        assert_eq!(be[2].get(), 0x3);
+        assert_eq!(be[3].get(), 0xD);
+        assert_eq!(be[4].get(), 0x4);
+        assert_eq!(be[5].get(), 0x7);
     }
 }

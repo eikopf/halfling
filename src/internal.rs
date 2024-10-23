@@ -4,23 +4,24 @@
 //! An [`UnsignedNibbleValue`] is defined such that its upper four bits
 //! are always zero, and so no particular effort needs to be taken
 //! when showing its bit pattern to the user (i.e. in the [`std::fmt::Binary`]
-//! implementation on [`Nibble`](crate::nibble::Nibble).
+//! implementation on [`Nibble`](crate::Nibble).
 //!
 //! # Conversions
 //! While it's trivial to convert an [`UnsignedNibbleValue`] into a `u8`, the
-//! conversion into an `i8` is less obvious; the bit pattern of a two's complement
-//! signed integer depends significantly on its bitwidth.
+//! conversion into an `i8` is less obvious; the bit pattern of a two's
+//! complement signed integer depends significantly on its bitwidth.
 //!
-//! Mapping an unsigned value to a signed one is simple, since it just corresponds
-//! to masking off the upper four bits (proof by inspection). The reverse mapping
-//! is slightly more complicated, since we need to set the upper 4 bits to `0xF`
-//! if the value is negative (i.e. the highest bit in the nibble is `1`). This
-//! should ideally also be branchless.[^1]
+//! Mapping an unsigned value to a signed one is simple, since it just
+//! corresponds to masking off the upper four bits (proof by inspection). The
+//! reverse mapping is slightly more complicated, since we need to set the
+//! upper 4 bits to `0xF` if the value is negative (i.e. the highest bit in the
+//! nibble is `1`). This should ideally also be branchless.[^1]
 //!
-//! [^1]: The algorithm described here appears to work for the conversion between
-//! any `u2N` and `iN` (that is, conversion to a half-length signed integer from a
-//! full length unsigned integer), due to the fact that the upper half of the
-//! unsigned integer is uniformly identical to the leading bit of the lower half.
+//! [^1]: The algorithm described here appears to work for the conversion
+//! between any `u2N` and `iN` (that is, conversion to a half-length signed
+//! integer from a full length unsigned integer), due to the fact that the upper
+//! half of the unsigned integer is uniformly identical to the leading bit of
+//! the lower half.
 
 #![allow(dead_code)]
 
