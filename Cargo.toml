@@ -1,12 +1,12 @@
 [package]
 authors = ["Oliver Wooding <oliverwooding@icloud.com>"]
 name = "halfling"
-version = "0.5.1"
+version = "0.6.0"
 edition = "2021"
 readme = "README.md"
 repository = "https://github.com/eikopf/halfling"
 license = "MIT"
-keywords = ["nibble", "nibbles", "nybble", "nybbles", "packed"]
+keywords = ["nibble", "nibbles", "nybl", "nybls"]
 categories = ["encoding", "data-structures"]
 description = "A collection of basic utilities for working with nibbles."
 

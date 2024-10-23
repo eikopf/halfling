@@ -201,24 +201,13 @@ nibble_fmt_impls!(
 // CONSTANTS
 
 nibble_constants!(
-    MIN := 0,
+    ALL_UNSET := 0,
     ZERO := 0,
     ONE := 1,
     TWO := 2,
-    THREE := 3,
     FOUR := 4,
-    FIVE := 5,
-    SIX := 6,
-    SEVEN := 7,
     EIGHT := 8,
-    NINE := 9,
-    TEN := 10,
-    ELEVEN := 11,
-    TWELVE := 12,
-    THIRTEEN := 13,
-    FOURTEEN := 14,
-    FIFTEEN := 15,
-    MAX := 15
+    ALL_SET := 15
 );
 
 // OPERATOR TRAITS
@@ -389,14 +378,13 @@ impl Nibble {
         (upper, lower)
     }
 
-    /// Checks whether the given `u8` can be safely converted into a [`Nibble`],
-    /// returning this information as a `bool`.
+    /// Checks whether the given `u8` can be safely converted into a [`Nibble`].
     ///
     /// Prefer using this check over an ad-hoc implementation before making
     /// calls to `Nibble::new_unchecked`, since it is faster than the naive
-    /// `x < 16` and can be tested independently.
+    /// `x < 16`.
     #[inline]
-    pub(crate) const fn can_represent(value: u8) -> bool {
+    pub const fn can_represent(value: u8) -> bool {
         (value & 0xF0) == 0x00
     }
 
