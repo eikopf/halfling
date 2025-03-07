@@ -71,7 +71,7 @@ impl UnsignedNibbleValue {
         // set upper bits iff significand is 1
         let int = byte | (significand * 0xF0);
         // SAFETY: u8 and i8 have the same size and alignment
-        unsafe { std::mem::transmute(int) }
+        unsafe { core::mem::transmute(int) }
     }
 
     /// Consumes `self` and returns the corresponding `u8`.
@@ -85,7 +85,7 @@ impl UnsignedNibbleValue {
 macro_rules! nibble_try_from_impls {
     ($($int:ty),+) => {
         $(
-            impl std::convert::TryFrom<$int> for crate::Nibble {
+            impl core::convert::TryFrom<$int> for crate::Nibble {
                 type Error = crate::NibbleTryFromIntError<$int>;
 
                 fn try_from(value: $int) -> Result<Self, Self::Error> {
@@ -105,7 +105,7 @@ macro_rules! nibble_try_from_impls {
 macro_rules! nibble_into_impls {
     ($($target:ty),+) => {
         $(
-            impl std::convert::From<crate::Nibble> for $target {
+            impl core::convert::From<crate::Nibble> for $target {
                 fn from(value: crate::Nibble) -> Self {
                     value.get().into()
                 }
@@ -118,8 +118,8 @@ macro_rules! nibble_into_impls {
 macro_rules! nibble_try_into_impls {
     ($($target:ty),+) => {
         $(
-            impl std::convert::TryFrom<crate::Nibble> for $target {
-                type Error = <$target as std::convert::TryFrom<u8>>::Error;
+            impl core::convert::TryFrom<crate::Nibble> for $target {
+                type Error = <$target as core::convert::TryFrom<u8>>::Error;
 
                 fn try_from(value: crate::Nibble) -> Result<Self, Self::Error> {
                     value.get().try_into()
@@ -134,7 +134,7 @@ macro_rules! nibble_fmt_impls {
     ($($name:path),+) => {
         $(
             impl $name for crate::Nibble {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
                     <u8 as $name>::fmt(&self.get(), f)
                 }
             }
@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     fn unsigned_nibble_value_is_byte_width() {
-        assert_eq!(std::mem::size_of::<UnsignedNibbleValue>(), 1);
+        assert_eq!(core::mem::size_of::<UnsignedNibbleValue>(), 1);
     }
 
     #[test]

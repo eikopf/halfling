@@ -1,16 +1,16 @@
 [package]
 authors = ["Oliver Wooding <oliverwooding@icloud.com>"]
 name = "halfling"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 readme = "README.md"
 repository = "https://github.com/eikopf/halfling"
 license = "MIT"
-keywords = ["nibble", "nibbles", "nybble", "nybbles", "packed"]
+keywords = ["nibble", "nybl", "no_std"]
 categories = ["encoding", "data-structures"]
 description = "A collection of basic utilities for working with nibbles."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-thiserror = "1.0.51"
+thiserror = "2.0.12"

@@ -15,9 +15,9 @@
 //! [niche value optimization](std::option#representation) will apply.
 //! (a [`Nibble`] has 4 unused bits, and hence 240 such niches are available).
 //! They are byte-width due to [Rust's fundamental expectation that types are
-//! at byte-aligned](https://doc.rust-lang.org/reference/type-layout.html),
-//! which prevents us from constructing a single type that genuinely consumes
-//! only a nibble of memory.
+//! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html),which
+//! prevents us from constructing a single type that genuinely consumes only a
+//! nibble of memory.
 //!
 //! # Ordering Nibbles
 //! When representing larger units of data in terms of bytes, we need to agree
@@ -31,107 +31,64 @@
 //! trait for these two orderings, and are used to control the order in which
 //! a [`Nibbles`] iterator produces values.
 
+#![no_std]
 #![warn(missing_docs)]
 #![warn(rustdoc::all)]
 #![warn(clippy::all)]
+
+use ordering::{Be, Le, Ordering};
 use thiserror::Error;
 
 #[macro_use]
 mod internal;
 
-/// An ordering for the two [`Nibble`] values in a `u8`.
-///
-/// For a given `byte: u8`, its lower nibble is given by `x & 0xF0`, and its
-/// upper nibble is given by `x >> 4`. The choice of ordering can be seen as
-/// analogous to endianness.
-///
-/// Actually, this *is* endianness. Because it's not a well-defined term, we
-/// are free to use little-endian and big-endian to describe the two possible
-/// nibble orderings; the corresponding implementors are [`Le`] and [`Be`].
-pub trait Ordering {
-    /// Splits a `byte` into two [`Nibble`] values such that they are ordered
-    /// from left-to-right.
-    fn split_byte(byte: u8) -> (Nibble, Nibble);
-
-    /// Combines `first` and `second` into a single `u8` according to the
-    /// ordering defined by the implementor.
-    fn join_nibbles(first: Nibble, second: Nibble) -> u8;
-}
-
-/// The little-endian [`Nibble`] [`Ordering`] marker.
-pub struct Le;
-
-impl Ordering for Le {
-    #[inline]
-    fn split_byte(byte: u8) -> (Nibble, Nibble) {
-        let (upper, lower) = Nibble::pair_from_byte(byte);
-        (lower, upper)
-    }
-
-    #[inline]
-    fn join_nibbles(first: Nibble, second: Nibble) -> u8 {
-        let lower = first.get();
-        let upper = second.get() << 4;
-        upper | lower
-    }
-}
-
-/// The big-endian [`Nibble`] [`Ordering`] marker.
-pub struct Be;
-
-impl Ordering for Be {
-    #[inline]
-    fn split_byte(byte: u8) -> (Nibble, Nibble) {
-        let (upper, lower) = Nibble::pair_from_byte(byte);
-        (upper, lower)
-    }
-
-    #[inline]
-    fn join_nibbles(first: Nibble, second: Nibble) -> u8 {
-        let lower = second.get();
-        let upper = first.get() << 4;
-        upper | lower
-    }
-}
+pub mod ordering;
 
 #[derive(Debug, Clone)]
-/// A [`Nibble`] iterator over a `&[u8]` with [`Ordering`] defined by `O`.
-pub struct Nibbles<'a, O> {
-    bytes: std::slice::Iter<'a, u8>,
+/// A [`Nibble`] iterator over a `T: impl Iterator<Item=u8>` with [`Ordering`]
+/// defined by `O`.
+pub struct Nibbles<T, O> {
+    bytes: T,
     next: Option<Nibble>,
-    ordering: std::marker::PhantomData<O>,
+    ordering: core::marker::PhantomData<O>,
 }
 
-impl<'a> Nibbles<'a, Le> {
+impl<T> Nibbles<T, Le> {
     /// Constructs a new [`Nibbles`] iterating over the nibbles of `bytes` in
     /// little-endian order.
-    pub fn new_le(bytes: &'a [u8]) -> Self {
+    pub fn new_le<U>(bytes: U) -> Self
+    where
+        U: IntoIterator<IntoIter = T>,
+    {
         Nibbles {
-            bytes: bytes.iter(),
+            bytes: <U as IntoIterator>::into_iter(bytes),
             next: None,
-            ordering: std::marker::PhantomData,
+            ordering: core::marker::PhantomData,
         }
     }
 }
 
-impl<'a> Nibbles<'a, Be> {
+impl<T> Nibbles<T, Be> {
     /// Constructs a new [`Nibbles`] iterating over the nibbles of `bytes` in
     /// big-endian order.
-    pub fn new_be(bytes: &'a [u8]) -> Self {
+    pub fn new_be<U>(bytes: U) -> Self
+    where
+        U: IntoIterator<IntoIter = T>,
+    {
         Nibbles {
-            bytes: bytes.iter(),
+            bytes: <U as IntoIterator>::into_iter(bytes),
             next: None,
-            ordering: std::marker::PhantomData,
+            ordering: core::marker::PhantomData,
         }
     }
 }
 
-impl<'a, O: Ordering> Iterator for Nibbles<'a, O> {
+impl<T: Iterator<Item = u8>, O: Ordering> Iterator for Nibbles<T, O> {
     type Item = Nibble;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next.take().or_else(|| {
-            self.bytes.next().map(|&byte| {
+            self.bytes.next().map(|byte| {
                 let (first, second) = O::split_byte(byte);
                 self.next = Some(second);
                 first
@@ -168,7 +125,7 @@ pub struct Nibble(internal::UnsignedNibbleValue);
 nibble_try_from_impls!(
     u8,
     i8,
-    std::num::NonZeroU8,
+    core::num::NonZeroU8,
     u16,
     i16,
     u32,
@@ -185,47 +142,36 @@ nibble_try_from_impls!(
 
 nibble_into_impls!(u8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize, char);
 
-nibble_try_into_impls!(i8, std::num::NonZeroU8);
+nibble_try_into_impls!(i8, core::num::NonZeroU8);
 
 // DISPLAY TRAITS
 
 nibble_fmt_impls!(
-    std::fmt::Binary,
-    std::fmt::Octal,
-    std::fmt::LowerHex,
-    std::fmt::UpperHex,
-    std::fmt::Display,
-    std::fmt::Debug
+    core::fmt::Binary,
+    core::fmt::Octal,
+    core::fmt::LowerHex,
+    core::fmt::UpperHex,
+    core::fmt::Display,
+    core::fmt::Debug
 );
 
 // CONSTANTS
 
 nibble_constants!(
-    MIN := 0,
+    ALL_UNSET := 0,
     ZERO := 0,
     ONE := 1,
     TWO := 2,
-    THREE := 3,
     FOUR := 4,
-    FIVE := 5,
-    SIX := 6,
-    SEVEN := 7,
     EIGHT := 8,
-    NINE := 9,
-    TEN := 10,
-    ELEVEN := 11,
-    TWELVE := 12,
-    THIRTEEN := 13,
-    FOURTEEN := 14,
-    FIFTEEN := 15,
-    MAX := 15
+    ALL_SET := 15
 );
 
 // OPERATOR TRAITS
 // TODO: (maybe) add a macro for implementing the {Op}Assign traits
 // TODO: implement Bit{op}<Rhs = u8, Output = u8>
 
-impl std::ops::BitAnd for Nibble {
+impl core::ops::BitAnd for Nibble {
     type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self::Output {
@@ -239,13 +185,13 @@ impl std::ops::BitAnd for Nibble {
     }
 }
 
-impl std::ops::BitAndAssign for Nibble {
+impl core::ops::BitAndAssign for Nibble {
     fn bitand_assign(&mut self, rhs: Self) {
         *self = *self & rhs;
     }
 }
 
-impl std::ops::BitOr for Nibble {
+impl core::ops::BitOr for Nibble {
     type Output = Self;
 
     fn bitor(self, rhs: Self) -> Self::Output {
@@ -259,13 +205,13 @@ impl std::ops::BitOr for Nibble {
     }
 }
 
-impl std::ops::BitOrAssign for Nibble {
+impl core::ops::BitOrAssign for Nibble {
     fn bitor_assign(&mut self, rhs: Self) {
         *self = *self | rhs;
     }
 }
 
-impl std::ops::BitXor for Nibble {
+impl core::ops::BitXor for Nibble {
     type Output = Self;
 
     fn bitxor(self, rhs: Self) -> Self::Output {
@@ -276,13 +222,13 @@ impl std::ops::BitXor for Nibble {
     }
 }
 
-impl std::ops::BitXorAssign for Nibble {
+impl core::ops::BitXorAssign for Nibble {
     fn bitxor_assign(&mut self, rhs: Self) {
         *self = *self ^ rhs;
     }
 }
 
-impl std::ops::Not for Nibble {
+impl core::ops::Not for Nibble {
     type Output = Self;
 
     fn not(self) -> Self::Output {
@@ -296,7 +242,7 @@ impl std::ops::Not for Nibble {
 // TODO: add shift ops for usize
 // TODO: implement wrapping and saturating shift ops
 
-impl std::ops::Shl<u8> for Nibble {
+impl core::ops::Shl<u8> for Nibble {
     type Output = Nibble;
 
     fn shl(self, rhs: u8) -> Self::Output {
@@ -313,13 +259,13 @@ impl std::ops::Shl<u8> for Nibble {
     }
 }
 
-impl std::ops::ShlAssign<u8> for Nibble {
+impl core::ops::ShlAssign<u8> for Nibble {
     fn shl_assign(&mut self, rhs: u8) {
         *self = *self << rhs;
     }
 }
 
-impl std::ops::Shr<u8> for Nibble {
+impl core::ops::Shr<u8> for Nibble {
     type Output = Nibble;
 
     fn shr(self, rhs: u8) -> Self::Output {
@@ -336,7 +282,7 @@ impl std::ops::Shr<u8> for Nibble {
     }
 }
 
-impl std::ops::ShrAssign<u8> for Nibble {
+impl core::ops::ShrAssign<u8> for Nibble {
     fn shr_assign(&mut self, rhs: u8) {
         *self = *self >> rhs;
     }
@@ -359,7 +305,7 @@ impl Nibble {
     /// `value` must be strictly less than 16.
     #[inline]
     pub const unsafe fn new_unchecked(value: u8) -> Self {
-        std::mem::transmute(value)
+        core::mem::transmute(value)
     }
 
     /// Constructs a new [`Nibble`] representing the given value,
@@ -389,14 +335,13 @@ impl Nibble {
         (upper, lower)
     }
 
-    /// Checks whether the given `u8` can be safely converted into a [`Nibble`],
-    /// returning this information as a `bool`.
+    /// Checks whether the given `u8` can be safely converted into a [`Nibble`].
     ///
     /// Prefer using this check over an ad-hoc implementation before making
     /// calls to `Nibble::new_unchecked`, since it is faster than the naive
-    /// `x < 16` and can be tested independently.
+    /// `x < 16`.
     #[inline]
-    pub(crate) const fn can_represent(value: u8) -> bool {
+    pub const fn can_represent(value: u8) -> bool {
         (value & 0xF0) == 0x00
     }
 
@@ -411,8 +356,8 @@ mod tests {
     #[test]
     fn size_of_option_nibble_equals_size_of_nibble() {
         assert_eq!(
-            std::mem::size_of::<Option<Nibble>>(),
-            std::mem::size_of::<Nibble>()
+            core::mem::size_of::<Option<Nibble>>(),
+            core::mem::size_of::<Nibble>()
         )
     }
 
@@ -460,7 +405,6 @@ mod tests {
         for value in 0u8..15u8 {
             let nibble = Nibble::try_from(value).unwrap();
             let complement = !nibble;
-            eprintln!("{:#06b} --> {:#06b}", nibble, complement);
             assert!(nibble.get() + complement.get() == 15u8);
         }
     }
@@ -506,26 +450,23 @@ mod tests {
 
     #[test]
     fn correct_nibbles_iteration_order() {
-        let bytes = vec![0xA6, 0x3D, 0x47];
+        let bytes = [0xA6, 0x3D, 0x47];
 
-        let le = Nibbles::new_le(&bytes).collect::<Vec<_>>();
-        let be = Nibbles::new_be(&bytes).collect::<Vec<_>>();
+        let mut le = Nibbles::new_le(bytes).map(|x| x.get());
+        let mut be = Nibbles::new_be(bytes).map(|x| x.get());
 
-        assert_eq!(le.len(), 6);
-        assert_eq!(be.len(), 6);
+        assert_eq!(le.next(), Some(0x6));
+        assert_eq!(le.next(), Some(0xA));
+        assert_eq!(le.next(), Some(0xD));
+        assert_eq!(le.next(), Some(0x3));
+        assert_eq!(le.next(), Some(0x7));
+        assert_eq!(le.next(), Some(0x4));
 
-        assert_eq!(le[0].get(), 0x6);
-        assert_eq!(le[1].get(), 0xA);
-        assert_eq!(le[2].get(), 0xD);
-        assert_eq!(le[3].get(), 0x3);
-        assert_eq!(le[4].get(), 0x7);
-        assert_eq!(le[5].get(), 0x4);
-
-        assert_eq!(be[0].get(), 0xA);
-        assert_eq!(be[1].get(), 0x6);
-        assert_eq!(be[2].get(), 0x3);
-        assert_eq!(be[3].get(), 0xD);
-        assert_eq!(be[4].get(), 0x4);
-        assert_eq!(be[5].get(), 0x7);
+        assert_eq!(be.next(), Some(0xA));
+        assert_eq!(be.next(), Some(0x6));
+        assert_eq!(be.next(), Some(0x3));
+        assert_eq!(be.next(), Some(0xD));
+        assert_eq!(be.next(), Some(0x4));
+        assert_eq!(be.next(), Some(0x7));
     }
 }
