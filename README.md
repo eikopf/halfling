@@ -43,7 +43,7 @@ let bytes = vec![0xE2, 0x17, 0xDC];
 // nibbles in little-endian order
 let le = Nibbles::new_le(&bytes).collect::<Vec<_>>();
 // nibbles in big-endian order
-let be = Nibbles::new_le(&bytes).collect::<Vec<_>>();
+let be = Nibbles::new_be(&bytes).collect::<Vec<_>>();
 
 assert!(le[0].get(), 0x2);
 assert!(le[1].get(), 0xE);
