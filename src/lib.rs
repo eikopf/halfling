@@ -45,43 +45,50 @@ mod internal;
 pub mod ordering;
 
 #[derive(Debug, Clone)]
-/// A [`Nibble`] iterator over a `&[u8]` with [`Ordering`] defined by `O`.
-pub struct Nibbles<'a, O> {
-    bytes: core::slice::Iter<'a, u8>,
+/// A [`Nibble`] iterator over a `T: impl Iterator<Item=u8>` with [`Ordering`]
+/// defined by `O`.
+pub struct Nibbles<T, O> {
+    bytes: T,
     next: Option<Nibble>,
     ordering: core::marker::PhantomData<O>,
 }
 
-impl<'a> Nibbles<'a, Le> {
+impl<T> Nibbles<T, Le> {
     /// Constructs a new [`Nibbles`] iterating over the nibbles of `bytes` in
     /// little-endian order.
-    pub fn new_le(bytes: &'a [u8]) -> Self {
+    pub fn new_le<U>(bytes: U) -> Self
+    where
+        U: IntoIterator<IntoIter = T>,
+    {
         Nibbles {
-            bytes: bytes.iter(),
+            bytes: <U as IntoIterator>::into_iter(bytes),
             next: None,
             ordering: core::marker::PhantomData,
         }
     }
 }
 
-impl<'a> Nibbles<'a, Be> {
+impl<T> Nibbles<T, Be> {
     /// Constructs a new [`Nibbles`] iterating over the nibbles of `bytes` in
     /// big-endian order.
-    pub fn new_be(bytes: &'a [u8]) -> Self {
+    pub fn new_be<U>(bytes: U) -> Self
+    where
+        U: IntoIterator<IntoIter = T>,
+    {
         Nibbles {
-            bytes: bytes.iter(),
+            bytes: <U as IntoIterator>::into_iter(bytes),
             next: None,
             ordering: core::marker::PhantomData,
         }
     }
 }
 
-impl<O: Ordering> Iterator for Nibbles<'_, O> {
+impl<T: Iterator<Item = u8>, O: Ordering> Iterator for Nibbles<T, O> {
     type Item = Nibble;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next.take().or_else(|| {
-            self.bytes.next().map(|&byte| {
+            self.bytes.next().map(|byte| {
                 let (first, second) = O::split_byte(byte);
                 self.next = Some(second);
                 first
@@ -445,8 +452,8 @@ mod tests {
     fn correct_nibbles_iteration_order() {
         let bytes = [0xA6, 0x3D, 0x47];
 
-        let mut le = Nibbles::new_le(&bytes).map(|x| x.get());
-        let mut be = Nibbles::new_be(&bytes).map(|x| x.get());
+        let mut le = Nibbles::new_le(bytes).map(|x| x.get());
+        let mut be = Nibbles::new_be(bytes).map(|x| x.get());
 
         assert_eq!(le.next(), Some(0x6));
         assert_eq!(le.next(), Some(0xA));
