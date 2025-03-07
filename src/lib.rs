@@ -140,7 +140,9 @@ nibble_try_from_impls!(
     bool
 );
 
-nibble_into_impls!(u8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize, char);
+nibble_into_impls!(
+    u8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize, char
+);
 
 nibble_try_into_impls!(i8, core::num::NonZeroU8);
 
@@ -305,7 +307,7 @@ impl Nibble {
     /// `value` must be strictly less than 16.
     #[inline]
     pub const unsafe fn new_unchecked(value: u8) -> Self {
-        core::mem::transmute(value)
+        unsafe { core::mem::transmute(value) }
     }
 
     /// Constructs a new [`Nibble`] representing the given value,

@@ -1,8 +1,8 @@
 [package]
 authors = ["Oliver Wooding <oliverwooding@icloud.com>"]
 name = "halfling"
-version = "0.6.0"
-edition = "2021"
+version = "0.6.1"
+edition = "2024"
 readme = "README.md"
 repository = "https://github.com/eikopf/halfling"
 license = "MIT"
