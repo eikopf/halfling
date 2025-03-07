@@ -75,7 +75,7 @@ impl<'a> Nibbles<'a, Be> {
     }
 }
 
-impl<'a, O: Ordering> Iterator for Nibbles<'a, O> {
+impl<O: Ordering> Iterator for Nibbles<'_, O> {
     type Item = Nibble;
 
     fn next(&mut self) -> Option<Self::Item> {
