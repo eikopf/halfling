@@ -6,7 +6,7 @@ edition = "2021"
 readme = "README.md"
 repository = "https://github.com/eikopf/halfling"
 license = "MIT"
-keywords = ["nibble", "nibbles", "nybl", "nybls"]
+keywords = ["nibble", "nybl", "no_std"]
 categories = ["encoding", "data-structures"]
 description = "A collection of basic utilities for working with nibbles."
 
