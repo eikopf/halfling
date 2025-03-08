@@ -171,8 +171,20 @@ nibble_constants!(
 );
 
 // OPERATOR TRAITS
-// TODO: (maybe) add a macro for implementing the {Op}Assign traits
-// TODO: implement Bit{op}<Rhs = u8, Output = u8>
+//
+// Recall that a Nibble is _not_ an integer in the semantic sense, just a 4-bit
+// set. We can only implement traits that make sense from this perspective, so
+// mostly only the Bit{op} traits.
+//
+// The BitAnd, BitOr, and BitXor traits (as well as their Assign variants) are
+// morally closed functions in the sense that they cannot reasonably be
+// implemented in a way that produces a u8 greater than 15. This is similarly
+// true for the Not trait.
+//
+// However, the Shr and Shl traits (along with their Assign counterparts) are
+// more complicated. We'll want to write impls both for when Nibble is the Self
+// type and when it is the rhs argument; because this is coherent for many
+// integer types we will need to write this as a macro.
 
 impl core::ops::BitAnd for Nibble {
     type Output = Self;
@@ -241,54 +253,17 @@ impl core::ops::Not for Nibble {
     }
 }
 
-// TODO: make the shift ops non-panicking
-// TODO: add shift ops for usize
-// TODO: implement wrapping and saturating shift ops
+// BITSHIFT OPERATOR IMPLS
 
-impl core::ops::Shl<u8> for Nibble {
-    type Output = Nibble;
-
-    fn shl(self, rhs: u8) -> Self::Output {
-        let lhs: u8 = self.get();
-        let result = lhs << rhs;
-
-        match Nibble::can_represent(result) {
-            true => unsafe { Nibble::new_unchecked(result) },
-            false => panic!(
-                "the value {:#x} (created by {} << {}) cannot be represented as a nibble",
-                result, lhs, rhs
-            ),
-        }
-    }
+nibble_rhs_bitshift_impls! {
+    u8, u16, u32, u64, u128, usize,
+    i8, i16, i32, i64, i128, isize
 }
 
-impl core::ops::ShlAssign<u8> for Nibble {
-    fn shl_assign(&mut self, rhs: u8) {
-        *self = *self << rhs;
-    }
-}
-
-impl core::ops::Shr<u8> for Nibble {
-    type Output = Nibble;
-
-    fn shr(self, rhs: u8) -> Self::Output {
-        let lhs: u8 = self.get();
-        let result = lhs >> rhs;
-
-        match Nibble::try_from(result) {
-            Ok(nibble) => nibble,
-            Err(_) => panic!(
-                "the value {:#x} (created by {} >> {}) cannot be represented as a nibble.",
-                result, lhs, rhs
-            ),
-        }
-    }
-}
-
-impl core::ops::ShrAssign<u8> for Nibble {
-    fn shr_assign(&mut self, rhs: u8) {
-        *self = *self >> rhs;
-    }
+nibble_bitshift_impls! {
+    Nibble,
+    u8, u16, u32, u64, u128, usize,
+    i8, i16, i32, i64, i128, isize
 }
 
 // OTHER IMPLS
@@ -415,9 +390,9 @@ mod tests {
     #[test]
     fn shl_produces_correct_values() {
         let one = Nibble::ONE;
-        let two = one << 1;
-        let four = one << 2;
-        let eight = one << 3;
+        let two = one << 1u8;
+        let four = one << 2u32;
+        let eight = one << 3isize;
 
         assert_eq!(one.get(), 0b0001);
         assert_eq!(two.get(), 0b0010);
@@ -428,9 +403,9 @@ mod tests {
     #[test]
     fn shr_produces_correct_values() {
         let fifteen = Nibble::try_from(15u8).unwrap();
-        let seven = fifteen >> 1;
-        let three = fifteen >> 2;
-        let one = fifteen >> 3;
+        let seven = fifteen >> 1usize;
+        let three = fifteen >> 2i128;
+        let one = fifteen >> 3i8;
 
         assert_eq!(fifteen.get(), 0b1111);
         assert_eq!(seven.get(), 0b0111);
