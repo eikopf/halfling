@@ -10,7 +10,9 @@ keywords = ["nibble", "nybl", "no_std"]
 categories = ["encoding", "data-structures"]
 description = "A collection of basic utilities for working with nibbles."
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+std = []
 
 [dependencies]
 thiserror = "2.0.12"

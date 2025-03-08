@@ -31,7 +31,7 @@
 //! trait for these two orderings, and are used to control the order in which
 //! a [`Nibbles`] iterator produces values.
 
-#![cfg_attr(not(test), no_std)]
+#![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![warn(missing_docs)]
 #![warn(rustdoc::all)]
 #![warn(clippy::all)]
