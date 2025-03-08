@@ -153,6 +153,66 @@ macro_rules! nibble_constants {
     };
 }
 
+macro_rules! nibble_bitshift_impls {
+    ($($target:ty),+) => {
+    $(
+        impl core::ops::Shl<$target> for crate::Nibble {
+            type Output = Self;
+
+            fn shl(self, rhs: $target) -> Self::Output {
+                let byte = self.get() << rhs;
+                unsafe { Self::new_unchecked(byte & Self::BYTE_MASK) }
+            }
+        }
+
+        impl core::ops::ShlAssign<$target> for crate::Nibble {
+            fn shl_assign(&mut self, rhs: $target) {
+                let value = *self << rhs;
+                *self = value;
+            }
+        }
+
+        impl core::ops::Shr<$target> for crate::Nibble {
+            type Output = Self;
+
+            fn shr(self, rhs: $target) -> Self::Output {
+                let byte = self.get() >> rhs;
+                unsafe { Self::new_unchecked(byte & Self::BYTE_MASK) }
+            }
+        }
+
+        impl core::ops::ShrAssign<$target> for crate::Nibble {
+            fn shr_assign(&mut self, rhs: $target) {
+                let value = *self >> rhs;
+                *self = value;
+            }
+        }
+    )+
+    };
+}
+
+macro_rules! nibble_rhs_bitshift_impls {
+    ($($target:ty),+) => {
+    $(
+        impl core::ops::Shl<crate::Nibble> for $target {
+            type Output = Self;
+
+            fn shl(self, rhs: crate::Nibble) -> Self::Output {
+                self << rhs.get()
+            }
+        }
+
+        impl core::ops::Shr<crate::Nibble> for $target {
+            type Output = Self;
+
+            fn shr(self, rhs: crate::Nibble) -> Self::Output {
+                self >> rhs.get()
+            }
+        }
+    )+
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
