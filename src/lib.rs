@@ -98,10 +98,11 @@ impl<T: Iterator<Item = u8>, O: Ordering> Iterator for Nibbles<T, O> {
 }
 
 /// The error produced if a conversion from an integral type to a [`Nibble`]
-/// fails.
+/// fails. The [`0`](NibbleTryFromIntError::0) field contains the value which
+/// could not be converted to a [`Nibble`].
 #[derive(Debug, Error)]
 #[error("failed to convert {0:?} into a nibble.")]
-pub struct NibbleTryFromIntError<T>(T);
+pub struct NibbleTryFromIntError<T>(pub T);
 
 /// A byte-width nibble, representing a 4-bit unit of data.
 ///
