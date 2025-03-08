@@ -31,7 +31,7 @@
 //! trait for these two orderings, and are used to control the order in which
 //! a [`Nibbles`] iterator produces values.
 
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 #![warn(missing_docs)]
 #![warn(rustdoc::all)]
 #![warn(clippy::all)]
@@ -446,5 +446,20 @@ mod tests {
         assert_eq!(be.next(), Some(0xD));
         assert_eq!(be.next(), Some(0x4));
         assert_eq!(be.next(), Some(0x7));
+    }
+
+    #[test]
+    fn nibbles_constructor_apis_behave_correctly() {
+        let bytes: Vec<u8> = vec![0x32, 0x0C, 0x1F];
+
+        // first iterate by a reference to bytes
+        for nybl in Nibbles::le(bytes.iter().copied()) {
+            dbg![nybl];
+        }
+
+        // then consume the vector and iterate
+        for nybl in Nibbles::be(bytes) {
+            dbg![nybl];
+        }
     }
 }
