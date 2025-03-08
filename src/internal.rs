@@ -3,7 +3,7 @@
 //! # Bit Patterns
 //! An [`UnsignedNibbleValue`] is defined such that its upper four bits
 //! are always zero, and so no particular effort needs to be taken
-//! when showing its bit pattern to the user (i.e. in the [`std::fmt::Binary`]
+//! when showing its bit pattern to the user (i.e. in the [`core::fmt::Binary`]
 //! implementation on [`Nibble`](crate::Nibble).
 //!
 //! # Conversions
@@ -31,7 +31,7 @@
 ///
 /// To avoid excessive branching, this enum must
 /// be `repr(u8)` such that valid nibbles can be
-/// directly created via [`std::mem::transmute`];
+/// directly created via [`core::mem::transmute`];
 /// edge cases notwithstanding the variants in this
 /// enum should never actually be constructed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

@@ -12,10 +12,10 @@
 //!
 //! `halfling`'s [`Nibble`] is a byte-width struct containing a single nibble,
 //! which guarantees that the
-//! [niche value optimization](std::option#representation) will apply.
+//! [niche value optimization](core::option#representation) will apply.
 //! (a [`Nibble`] has 4 unused bits, and hence 240 such niches are available).
 //! They are byte-width due to [Rust's fundamental expectation that types are
-//! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html),which
+//! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which
 //! prevents us from constructing a single type that genuinely consumes only a
 //! nibble of memory.
 //!
@@ -56,7 +56,7 @@ pub struct Nibbles<T, O> {
 impl<T> Nibbles<T, Le> {
     /// Constructs a new [`Nibbles`] iterating over the nibbles of `bytes` in
     /// little-endian order.
-    pub fn new_le<U>(bytes: U) -> Self
+    pub fn le<U>(bytes: U) -> Self
     where
         U: IntoIterator<IntoIter = T>,
     {
@@ -71,7 +71,7 @@ impl<T> Nibbles<T, Le> {
 impl<T> Nibbles<T, Be> {
     /// Constructs a new [`Nibbles`] iterating over the nibbles of `bytes` in
     /// big-endian order.
-    pub fn new_be<U>(bytes: U) -> Self
+    pub fn be<U>(bytes: U) -> Self
     where
         U: IntoIterator<IntoIter = T>,
     {
@@ -111,11 +111,11 @@ pub struct NibbleTryFromIntError<T>(T);
 /// holds for all `Nibble` values `x`.
 ///
 /// Though the compiler doesn't _strictly_ guarantee it, you
-/// may rely on the [null pointer optimisation](std::option#representation):
-/// [`Option<Nibble>`](std::option) will have the same size
+/// may rely on the [null pointer optimisation](core::option#representation):
+/// [`Option<Nibble>`](core::option) will have the same size
 /// and alignment as `Nibble`. This also implies that you may
-/// use `std::mem::transmute` from `Nibble` to `Option<Nibble>`,
-/// and from `Some::<Nibble>(_)` to `Nibble`.
+/// use `core::mem::transmute` to send `Nibble` to `Option<Nibble>`,
+/// and to send `Some::<Nibble>(_)` to `Nibble`.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct Nibble(internal::UnsignedNibbleValue);
@@ -454,8 +454,8 @@ mod tests {
     fn correct_nibbles_iteration_order() {
         let bytes = [0xA6, 0x3D, 0x47];
 
-        let mut le = Nibbles::new_le(bytes).map(|x| x.get());
-        let mut be = Nibbles::new_be(bytes).map(|x| x.get());
+        let mut le = Nibbles::le(bytes).map(|x| x.get());
+        let mut be = Nibbles::be(bytes).map(|x| x.get());
 
         assert_eq!(le.next(), Some(0x6));
         assert_eq!(le.next(), Some(0xA));

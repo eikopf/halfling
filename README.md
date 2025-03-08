@@ -11,7 +11,7 @@ let invalid_nibble = Nibble::new(16);   // returns None
 
 // if you already know a value to be less than 16, you can use Nibble::new_unchecked
 let quick_nibble = unsafe { Nibble::new_unchecked(6) };
-// using Nibble::new_unchecked with a value greater than 16 is undefined behaviour
+// using Nibble::new_unchecked with a value greater than 15 is undefined behaviour
 ```
 
 Because the smallest unit of memory in Rust is a byte, it isn't possible to construct a `Nibble` without consuming the redundant upper bits. However, it's possible to use some enum trickery to tell the compiler which `u8` values are valid `Nibble` values, and so the other 240 values are available as niches.
@@ -30,9 +30,9 @@ This crate also provides the `Nibbles` type, which is an iterator that wraps an 
 let bytes = vec![0xE2, 0x17, 0xDC];
 
 // nibbles in little-endian order
-let le = Nibbles::new_le(&bytes).collect::<Vec<u8>>();
+let le = Nibbles::le(&bytes).collect::<Vec<u8>>();
 // nibbles in big-endian order
-let be = Nibbles::new_be(&bytes).collect::<Vec<u8>>();
+let be = Nibbles::be(&bytes).collect::<Vec<u8>>();
 
 assert!(le[0].get(), 0x2);
 assert!(le[1].get(), 0xE);
