@@ -27,24 +27,13 @@ assert_eq!(std::mem::size_of<Nibble>(), std::mem::size_of<Option<Nibble>>());
 This crate also provides the `Nibbles` type, which is an iterator that wraps an `impl Iterator<Item = u8>` and yields its nibbles in order. Since the ordering of nibbles within bytes is up to interpretation (it is a kind of endianness), the `Ordering` trait is provided to explicitly control how bytes are interpreted; it is implemented by the `Le` and `Be` marker structs.
 
 ```rust
-let bytes = vec![0xE2, 0x17, 0xDC];
+let bytes: [u8; 3] = [0xE2, 0x17, 0xDC];
 
 // nibbles in little-endian order
-let le = Nibbles::le(&bytes).collect::<Vec<u8>>();
+let le = Nibbles::le(bytes).collect::<Vec<u8>>();
 // nibbles in big-endian order
-let be = Nibbles::be(&bytes).collect::<Vec<u8>>();
+let be = Nibbles::be(bytes).collect::<Vec<u8>>();
 
-assert!(le[0].get(), 0x2);
-assert!(le[1].get(), 0xE);
-assert!(le[2].get(), 0x7);
-assert!(le[3].get(), 0x1);
-assert!(le[4].get(), 0xC);
-assert!(le[5].get(), 0xD);
-
-assert!(be[0].get(), 0xE);
-assert!(be[1].get(), 0x2);
-assert!(be[2].get(), 0x1);
-assert!(be[3].get(), 0x7);
-assert!(be[4].get(), 0xD);
-assert!(be[5].get(), 0xC);
+assert_eq!(vec![0x2, 0xE, 0x7, 0x1, 0xC, 0xD], le);
+assert_eq!(vec![0xE, 0x2, 0x1, 0x7, 0xD, 0xC], be);
 ```
