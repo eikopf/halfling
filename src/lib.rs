@@ -12,7 +12,7 @@
 //!
 //! `halfling`'s [`Nibble`] is a byte-width struct containing a single nibble,
 //! which guarantees that the
-//! [niche value optimization](core::option#representation) will apply.
+//! [niche value optimization](core::option#representation) will apply
 //! (a [`Nibble`] has 4 unused bits, and hence 240 such niches are available).
 //! They are byte-width due to [Rust's fundamental expectation that types are
 //! byte-aligned](https://doc.rust-lang.org/reference/type-layout.html), which

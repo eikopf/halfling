@@ -1,5 +1,5 @@
 # Halfling
-A library of basic utilities for working with [nibbles](https://en.wikipedia.org/wiki/Nibble). This crate is entirely `#no_std` and never allocates or clones.
+A library of basic utilities for working with [nibbles](https://en.wikipedia.org/wiki/Nibble); this crate is entirely `#no_std` and never allocates or clones.
 
 # Usage
 The core type in `halfling` is [`Nibble`](https://docs.rs/halfling/latest/halfling/struct.Nibble.html), which is effectively a wrapper around a `u8` that guarantees it will always be strictly less than 16.
